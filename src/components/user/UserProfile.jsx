@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useCartContext } from '../../context/CartContext'
+import { Link } from 'react-router-dom'
 import {
     User,
     Edit,
