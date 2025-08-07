@@ -231,7 +231,7 @@ export default function ShoppingCart() {
           </div>
         </div>
 
-        <style jsx>{`
+        <style>{`
                     .empty-cart {
                         text-align: center;
                         padding: var(--space-16);

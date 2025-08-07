@@ -11,7 +11,7 @@ import {
     ShoppingCart,
     Star,
     AlertTriangle,
-    DollarSign,
+    IndianRupee,
     Eye,
     Plus
 } from 'lucide-react'
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
 
                     <div className="stat-card">
                         <div className="stat-card__icon">
-                            <DollarSign size={24} />
+                            <IndianRupee size={24} />
                         </div>
                         <div className="stat-card__value">₹{stats.totalRevenue.toLocaleString()}</div>
                         <div className="stat-card__label">Total Revenue</div>

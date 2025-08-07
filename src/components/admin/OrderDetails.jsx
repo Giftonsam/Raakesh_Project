@@ -416,7 +416,7 @@ export default function OrderDetails() {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
         .order-header {
           display: flex;
           align-items: start;
