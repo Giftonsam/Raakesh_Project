@@ -1,337 +1,375 @@
-import React from 'react'
+// src/components/user/Wishlist.jsx
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { useCartContext } from '../../context/CartContext'
-import { useBookContext } from '../../context/BookContext'
-import {
-    Heart,
-    ShoppingCart,
-    Trash2,
-    Star,
-    ArrowLeft
-} from 'lucide-react'
+import { Heart, ShoppingCart, Trash2, Eye, Star } from 'lucide-react'
+import WishlistButton from '../common/WishlistButton'
 
 export default function Wishlist() {
-    const { wishlist, removeFromWishlist, addToCart } = useCartContext()
-    const { getBookById } = useBookContext()
+  const [wishlistItems, setWishlistItems] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
 
-    const wishlistBooks = wishlist.map(bookId => getBookById(bookId)).filter(Boolean)
+  useEffect(() => {
+    fetchWishlistItems()
+  }, [])
 
-    const handleRemoveFromWishlist = async (bookId) => {
-        await removeFromWishlist(bookId)
+  const fetchWishlistItems = async () => {
+    setIsLoading(true)
+    try {
+      // Replace with your API call
+      const response = await fetch('/api/user/wishlist')
+      const data = await response.json()
+      setWishlistItems(data)
+    } catch (error) {
+      console.error('Error fetching wishlist:', error)
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    const handleAddToCart = async (bookId) => {
-        await addToCart(bookId, 1)
+  const handleToggleWishlist = async (bookId) => {
+    try {
+      // Replace with your API call
+      const response = await fetch('/api/user/wishlist/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bookId })
+      })
+
+      if (response.ok) {
+        // Remove item from wishlist immediately for better UX
+        setWishlistItems(prev => prev.filter(item => item.id !== bookId))
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error)
     }
+  }
 
-    const handleMoveToCart = async (bookId) => {
-        await addToCart(bookId, 1)
-        await removeFromWishlist(bookId)
+  const handleAddToCart = async (bookId) => {
+    try {
+      // Replace with your API call
+      const response = await fetch('/api/user/cart/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bookId, quantity: 1 })
+      })
+
+      if (response.ok) {
+        alert('Book added to cart!')
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error)
     }
+  }
 
-    if (wishlistBooks.length === 0) {
-        return (
-            <div className="page">
-                <div className="container">
-                    <div className="page__header">
-                        <h1 className="page__title">My Wishlist</h1>
-                        <p className="page__subtitle">Save books for later</p>
-                    </div>
-
-                    <div className="empty-wishlist">
-                        <Heart size={64} />
-                        <h2>Your wishlist is empty</h2>
-                        <p>Start browsing and add books you'd like to read to your wishlist!</p>
-                        <Link to="/books" className="btn btn--primary">
-                            <ArrowLeft size={18} />
-                            Browse Books
-                        </Link>
-                    </div>
-                </div>
-
-                <style>{`
-          .empty-wishlist {
-            text-align: center;
-            padding: var(--space-16);
-            color: var(--text-muted);
-          }
-
-          .empty-wishlist h2 {
-            margin: var(--space-6) 0 var(--space-4);
-            color: var(--text-secondary);
-          }
-
-          .empty-wishlist p {
-            margin-bottom: var(--space-8);
-            font-size: var(--font-size-lg);
-          }
-        `}</style>
-            </div>
-        )
-    }
-
+  if (isLoading) {
     return (
-        <div className="page">
-            <div className="container">
-                <div className="page__header">
-                    <h1 className="page__title">My Wishlist</h1>
-                    <p className="page__subtitle">
-                        {wishlistBooks.length} {wishlistBooks.length === 1 ? 'book' : 'books'} saved for later
-                    </p>
-                </div>
-
-                <div className="wishlist-grid">
-                    {wishlistBooks.map(book => (
-                        <div key={book.id} className="wishlist-item">
-                            <div className="wishlist-item__image">
-                                <img src={book.image} alt={book.title} />
-                                <button
-                                    onClick={() => handleRemoveFromWishlist(book.id)}
-                                    className="remove-wishlist-btn"
-                                    title="Remove from wishlist"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-
-                            <div className="wishlist-item__content">
-                                <span className="badge badge--primary">{book.category}</span>
-
-                                <h3 className="wishlist-item__title">
-                                    <Link to={`/books/${book.id}`}>{book.title}</Link>
-                                </h3>
-
-                                <p className="wishlist-item__author">by {book.author}</p>
-
-                                {book.rating && (
-                                    <div className="wishlist-item__rating">
-                                        <Star size={14} fill="currentColor" />
-                                        <span>{book.rating}</span>
-                                        <span className="text-muted">({book.reviews} reviews)</span>
-                                    </div>
-                                )}
-
-                                <div className="wishlist-item__price">₹{book.price.toLocaleString()}</div>
-
-                                <div className="wishlist-item__stock">
-                                    {book.quantity > 0 ? (
-                                        <span className="stock-available">{book.quantity} in stock</span>
-                                    ) : (
-                                        <span className="stock-unavailable">Out of stock</span>
-                                    )}
-                                </div>
-
-                                <div className="wishlist-item__actions">
-                                    {book.quantity > 0 ? (
-                                        <>
-                                            <button
-                                                onClick={() => handleMoveToCart(book.id)}
-                                                className="btn btn--primary"
-                                            >
-                                                <ShoppingCart size={16} />
-                                                Move to Cart
-                                            </button>
-                                            <button
-                                                onClick={() => handleAddToCart(book.id)}
-                                                className="btn btn--outline"
-                                            >
-                                                Add to Cart
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <button disabled className="btn btn--outline">
-                                            Out of Stock
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="wishlist-actions">
-                    <Link to="/books" className="btn btn--secondary">
-                        <ArrowLeft size={18} />
-                        Continue Shopping
-                    </Link>
-                    <p className="wishlist-tip">
-                        💡 Tip: Books in your wishlist are saved across sessions. You can access them anytime!
-                    </p>
-                </div>
-            </div>
-
-            <style>{`
-        .wishlist-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: var(--space-6);
-          margin-bottom: var(--space-8);
-        }
-
-        .wishlist-item {
-          background: var(--bg-primary);
-          border: 1px solid var(--color-gray-200);
-          border-radius: var(--radius-xl);
-          padding: var(--space-6);
-          transition: all var(--transition-base);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .wishlist-item::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 4px;
-          background: linear-gradient(135deg, var(--color-danger) 0%, #ec4899 100%);
-          transform: scaleX(0);
-          transition: transform var(--transition-base);
-        }
-
-        .wishlist-item:hover::before {
-          transform: scaleX(1);
-        }
-
-        .wishlist-item:hover {
-          transform: translateY(-4px);
-          box-shadow: var(--shadow-xl);
-        }
-
-        .wishlist-item__image {
-          position: relative;
-          margin-bottom: var(--space-4);
-        }
-
-        .wishlist-item__image img {
-          width: 100%;
-          height: 200px;
-          object-fit: cover;
-          border-radius: var(--radius-lg);
-        }
-
-        .remove-wishlist-btn {
-          position: absolute;
-          top: var(--space-2);
-          right: var(--space-2);
-          background: var(--bg-primary);
-          border: 1px solid var(--color-danger);
-          border-radius: var(--radius-full);
-          padding: var(--space-2);
-          color: var(--color-danger);
-          cursor: pointer;
-          transition: all var(--transition-fast);
-          box-shadow: var(--shadow-sm);
-        }
-
-        .remove-wishlist-btn:hover {
-          background: var(--color-danger);
-          color: var(--text-white);
-          transform: scale(1.1);
-        }
-
-        .wishlist-item__content {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-3);
-        }
-
-        .wishlist-item__title {
-          font-size: var(--font-size-lg);
-          font-weight: var(--font-weight-semibold);
-          line-height: var(--line-height-tight);
-          margin: 0;
-        }
-
-        .wishlist-item__title a {
-          color: var(--text-primary);
-          text-decoration: none;
-          transition: color var(--transition-fast);
-        }
-
-        .wishlist-item__title a:hover {
-          color: var(--color-primary);
-        }
-
-        .wishlist-item__author {
-          color: var(--text-secondary);
-          font-size: var(--font-size-sm);
-          margin: 0;
-        }
-
-        .wishlist-item__rating {
-          display: flex;
-          align-items: center;
-          gap: var(--space-1);
-          color: var(--color-accent);
-          font-size: var(--font-size-sm);
-        }
-
-        .wishlist-item__price {
-          font-size: var(--font-size-xl);
-          font-weight: var(--font-weight-bold);
-          color: var(--color-secondary);
-        }
-
-        .wishlist-item__stock {
-          font-size: var(--font-size-sm);
-        }
-
-        .stock-available {
-          color: var(--color-success);
-        }
-
-        .stock-unavailable {
-          color: var(--color-danger);
-          font-weight: var(--font-weight-medium);
-        }
-
-        .wishlist-item__actions {
-          display: flex;
-          gap: var(--space-2);
-          margin-top: var(--space-2);
-        }
-
-        .wishlist-actions {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: var(--space-6);
-          background: var(--bg-secondary);
-          border-radius: var(--radius-xl);
-          flex-wrap: wrap;
-          gap: var(--space-4);
-        }
-
-        .wishlist-tip {
-          color: var(--text-secondary);
-          font-size: var(--font-size-sm);
-          margin: 0;
-          font-style: italic;
-        }
-
-        @media (max-width: 768px) {
-          .wishlist-grid {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          }
-
-          .wishlist-item__actions {
-            flex-direction: column;
-          }
-
-          .wishlist-actions {
-            flex-direction: column;
-            text-align: center;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .wishlist-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
+      <div className="page">
+        <div className="container">
+          <div className="loading-container">
+            <div className="spinner spinner--lg"></div>
+            <p>Loading your wishlist...</p>
+          </div>
         </div>
+      </div>
     )
+  }
+
+  if (wishlistItems.length === 0) {
+    return (
+      <div className="page">
+        <div className="container">
+          <div className="page__header">
+            <h1 className="page__title">My Wishlist</h1>
+            <p className="page__subtitle">Your favorite books saved for later</p>
+          </div>
+
+          <div className="empty-wishlist">
+            <div className="empty-animation">
+              <Heart size={80} />
+            </div>
+            <h2>Your wishlist is empty</h2>
+            <p>Start adding books you love to keep track of them!</p>
+            <Link to="/books" className="btn btn--primary btn--lg">
+              Browse Books
+            </Link>
+          </div>
+        </div>
+
+        <style>{`
+                    .empty-wishlist {
+                        text-align: center;
+                        padding: var(--space-16);
+                        color: var(--text-muted);
+                    }
+
+                    .empty-animation {
+                        opacity: 0.3;
+                        margin-bottom: var(--space-6);
+                        animation: pulse 2s ease-in-out infinite;
+                    }
+
+                    .empty-wishlist h2 {
+                        font-size: var(--font-size-2xl);
+                        margin: var(--space-6) 0 var(--space-4);
+                        color: var(--text-secondary);
+                    }
+
+                    @keyframes pulse {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                    }
+                `}</style>
+      </div>
+    )
+  }
+
+  return (
+    <div className="page">
+      <div className="container">
+        <div className="page__header">
+          <h1 className="page__title">My Wishlist</h1>
+          <p className="page__subtitle">{wishlistItems.length} books in your wishlist</p>
+        </div>
+
+        <div className="wishlist-grid">
+          {wishlistItems.map(book => (
+            <div key={book.id} className="wishlist-card">
+              <div className="book-image">
+                <img
+                  src={book.image}
+                  alt={book.title}
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/200x300/3b82f6/ffffff?text=Book'
+                  }}
+                />
+
+                {/* Fixed Wishlist Button */}
+                <WishlistButton
+                  bookId={book.id}
+                  isInWishlist={true}
+                  onToggle={handleToggleWishlist}
+                  className="card-style"
+                  size={16}
+                />
+              </div>
+
+              <div className="book-content">
+                <div className="book-info">
+                  <h3 className="book-title">
+                    <Link to={`/books/${book.id}`}>
+                      {book.title}
+                    </Link>
+                  </h3>
+                  <p className="book-author">by {book.author}</p>
+
+                  {book.rating && (
+                    <div className="book-rating">
+                      <div className="stars">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            className={i < Math.floor(book.rating) ? 'star-filled' : 'star-empty'}
+                          />
+                        ))}
+                      </div>
+                      <span className="rating-text">({book.rating})</span>
+                    </div>
+                  )}
+
+                  <div className="book-price">
+                    {book.discountedPrice && book.discountedPrice < book.price ? (
+                      <>
+                        <span className="price-current">₹{book.discountedPrice}</span>
+                        <span className="price-original">₹{book.price}</span>
+                      </>
+                    ) : (
+                      <span className="price-current">₹{book.price}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="book-actions">
+                  <button
+                    onClick={() => handleAddToCart(book.id)}
+                    className="btn btn--primary btn--sm"
+                    disabled={book.stock === 0}
+                  >
+                    <ShoppingCart size={16} />
+                    {book.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                  </button>
+
+                  <Link
+                    to={`/books/${book.id}`}
+                    className="btn btn--outline btn--sm"
+                  >
+                    <Eye size={16} />
+                    View Details
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+                .loading-container {
+                    text-align: center;
+                    padding: var(--space-16);
+                    color: var(--text-muted);
+                }
+
+                .wishlist-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                    gap: var(--space-6);
+                }
+
+                .wishlist-card {
+                    background: var(--bg-primary);
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-xl);
+                    overflow: hidden;
+                    transition: all var(--transition-base);
+                    display: flex;
+                    height: 200px;
+                }
+
+                .wishlist-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: var(--shadow-xl);
+                    border-color: var(--color-primary);
+                }
+
+                .book-image {
+                    position: relative;
+                    width: 140px;
+                    flex-shrink: 0;
+                    background: var(--bg-secondary);
+                }
+
+                .book-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+                .book-content {
+                    padding: var(--space-4);
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    flex: 1;
+                }
+
+                .book-info {
+                    flex: 1;
+                }
+
+                .book-title {
+                    margin-bottom: var(--space-2);
+                }
+
+                .book-title a {
+                    font-size: var(--font-size-base);
+                    font-weight: var(--font-weight-semibold);
+                    color: var(--text-primary);
+                    text-decoration: none;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    transition: color var(--transition-fast);
+                }
+
+                .book-title a:hover {
+                    color: var(--color-primary);
+                }
+
+                .book-author {
+                    color: var(--text-secondary);
+                    font-size: var(--font-size-sm);
+                    margin-bottom: var(--space-3);
+                }
+
+                .book-rating {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    margin-bottom: var(--space-3);
+                }
+
+                .stars {
+                    display: flex;
+                    gap: var(--space-1);
+                }
+
+                .star-filled {
+                    color: #fbbf24;
+                    fill: currentColor;
+                }
+
+                .star-empty {
+                    color: var(--color-gray-300);
+                }
+
+                .rating-text {
+                    font-size: var(--font-size-sm);
+                    color: var(--text-muted);
+                }
+
+                .book-price {
+                    margin-bottom: var(--space-4);
+                }
+
+                .price-current {
+                    font-size: var(--font-size-lg);
+                    font-weight: var(--font-weight-bold);
+                    color: var(--color-secondary);
+                }
+
+                .price-original {
+                    font-size: var(--font-size-sm);
+                    color: var(--text-muted);
+                    text-decoration: line-through;
+                    margin-left: var(--space-2);
+                }
+
+                .book-actions {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-2);
+                }
+
+                @media (max-width: 768px) {
+                    .wishlist-grid {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .wishlist-card {
+                        height: auto;
+                        flex-direction: column;
+                    }
+
+                    .book-image {
+                        width: 100%;
+                        height: 200px;
+                    }
+
+                    .book-actions {
+                        flex-direction: row;
+                    }
+
+                    .book-actions .btn {
+                        flex: 1;
+                    }
+                }
+            `}</style>
+    </div>
+  )
 }

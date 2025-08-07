@@ -1,646 +1,901 @@
-import React, { useState } from 'react'
+// src/components/user/BookCatalog.jsx
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { useBookContext } from '../../context/BookContext'
-import { useCartContext } from '../../context/CartContext'
-import {
-    Search,
-    Filter,
-    Grid,
-    List,
-    ShoppingCart,
-    Heart,
-    Star,
-    BookOpen,
-    SortAsc
-} from 'lucide-react'
+import { Search, Filter, Grid, List, Star, ShoppingCart } from 'lucide-react'
+import WishlistButton from '../common/WishlistButton'
+
+// Sample books data for demonstration
+const sampleBooks = [
+  {
+    id: 1,
+    title: "The Great Gatsby",
+    author: "F. Scott Fitzgerald",
+    isbn: "978-0-7432-7356-5",
+    category: "Fiction",
+    price: 299,
+    stock: 25,
+    rating: 4.2,
+    description: "A classic American novel set in the Jazz Age, exploring themes of wealth, love, and the American Dream through the eyes of narrator Nick Carraway.",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop"
+  },
+  {
+    id: 2,
+    title: "To Kill a Mockingbird",
+    author: "Harper Lee",
+    isbn: "978-0-06-112008-4",
+    category: "Fiction",
+    price: 349,
+    stock: 18,
+    rating: 4.5,
+    description: "A gripping tale of racial injustice and childhood innocence in the American South, told through the eyes of young Scout Finch.",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop"
+  },
+  {
+    id: 3,
+    title: "1984",
+    author: "George Orwell",
+    isbn: "978-0-452-28423-4",
+    category: "Science Fiction",
+    price: 279,
+    stock: 32,
+    rating: 4.4,
+    discountedPrice: 199,
+    description: "A dystopian novel about totalitarianism and surveillance in a future society where Big Brother watches everyone.",
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop"
+  },
+  {
+    id: 4,
+    title: "Pride and Prejudice",
+    author: "Jane Austen",
+    isbn: "978-0-14-143951-8",
+    category: "Romance",
+    price: 259,
+    stock: 22,
+    rating: 4.3,
+    description: "A witty and romantic novel about love, class, and social expectations in Regency England, following Elizabeth Bennet and Mr. Darcy.",
+    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop"
+  },
+  {
+    id: 5,
+    title: "The Catcher in the Rye",
+    author: "J.D. Salinger",
+    isbn: "978-0-316-76948-0",
+    category: "Fiction",
+    price: 319,
+    stock: 15,
+    rating: 3.8,
+    description: "A coming-of-age story following teenager Holden Caulfield as he navigates the complexities of adulthood in New York City.",
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop"
+  },
+  {
+    id: 6,
+    title: "Harry Potter and the Philosopher's Stone",
+    author: "J.K. Rowling",
+    isbn: "978-0-439-70818-8",
+    category: "Fantasy",
+    price: 399,
+    stock: 45,
+    rating: 4.7,
+    discountedPrice: 299,
+    description: "The first book in the magical Harry Potter series about a young wizard's adventures at Hogwarts School of Witchcraft and Wizardry.",
+    image: "https://images.unsplash.com/photo-1621351183012-e2f9972dd9bf?w=400&h=600&fit=crop"
+  },
+  {
+    id: 7,
+    title: "The Lord of the Rings",
+    author: "J.R.R. Tolkien",
+    isbn: "978-0-544-00341-5",
+    category: "Fantasy",
+    price: 599,
+    stock: 28,
+    rating: 4.6,
+    description: "An epic fantasy adventure following hobbits Frodo and Sam on their quest to destroy the One Ring and save Middle-earth.",
+    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop"
+  },
+  {
+    id: 8,
+    title: "Dune",
+    author: "Frank Herbert",
+    isbn: "978-0-441-17271-9",
+    category: "Science Fiction",
+    price: 449,
+    stock: 20,
+    rating: 4.1,
+    discountedPrice: 349,
+    description: "A science fiction epic set on the desert planet Arrakis, featuring political intrigue, mysticism, and the spice melange.",
+    image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400&h=600&fit=crop"
+  },
+  {
+    id: 9,
+    title: "The Alchemist",
+    author: "Paulo Coelho",
+    isbn: "978-0-06-231500-7",
+    category: "Philosophy",
+    price: 229,
+    stock: 35,
+    rating: 4.0,
+    description: "A philosophical novel about a shepherd's journey to find his personal legend and the treasure that awaits him.",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop"
+  },
+  {
+    id: 10,
+    title: "Steve Jobs",
+    author: "Walter Isaacson",
+    isbn: "978-1-4516-4853-9",
+    category: "Biography",
+    price: 499,
+    stock: 12,
+    rating: 4.4,
+    description: "The definitive biography of Apple co-founder Steve Jobs, based on exclusive interviews and unprecedented access.",
+    image: "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=400&h=600&fit=crop"
+  },
+  {
+    id: 11,
+    title: "Sapiens",
+    author: "Yuval Noah Harari",
+    isbn: "978-0-06-231609-7",
+    category: "History",
+    price: 379,
+    stock: 30,
+    rating: 4.3,
+    description: "A fascinating exploration of human history and our species' journey from hunter-gatherers to global dominance.",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop"
+  },
+  {
+    id: 12,
+    title: "The Psychology of Money",
+    author: "Morgan Housel",
+    isbn: "978-0-85285-468-4",
+    category: "Finance",
+    price: 329,
+    stock: 25,
+    rating: 4.2,
+    discountedPrice: 249,
+    description: "Timeless lessons on wealth, greed, and happiness from the perspective of behavioral psychology and personal finance.",
+    image: "https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=400&h=600&fit=crop"
+  }
+]
+
+// Sample categories extracted from books
+const sampleCategories = [
+  { id: 1, name: "Fiction" },
+  { id: 2, name: "Science Fiction" },
+  { id: 3, name: "Fantasy" },
+  { id: 4, name: "Romance" },
+  { id: 5, name: "Philosophy" },
+  { id: 6, name: "Biography" },
+  { id: 7, name: "History" },
+  { id: 8, name: "Finance" }
+]
 
 export default function BookCatalog() {
-    const {
-        filteredBooks,
-        categories,
-        searchQuery,
-        setSearchQuery,
-        selectedCategory,
-        setSelectedCategory,
-        sortBy,
-        setSortBy,
-        isLoading
-    } = useBookContext()
+  const [books, setBooks] = useState([])
+  const [categories, setCategories] = useState([])
+  const [wishlist, setWishlist] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [sortBy, setSortBy] = useState('title')
+  const [viewMode, setViewMode] = useState('grid')
 
-    const { addToCart, addToWishlist, isInWishlist, removeFromWishlist } = useCartContext()
+  useEffect(() => {
+    fetchBooks()
+    fetchCategories()
+    fetchWishlist()
+  }, [])
 
-    const [viewMode, setViewMode] = useState('grid') // 'grid' or 'list'
-    const [showFilters, setShowFilters] = useState(false)
-
-    const handleAddToCart = async (bookId) => {
-        const result = await addToCart(bookId, 1)
-        if (result.success) {
-            // Show success notification (you can implement toast notifications)
-            console.log('Book added to cart!')
-        }
+  const fetchBooks = async () => {
+    try {
+      // Simulate API call with sample data
+      setIsLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate loading time
+      setBooks(sampleBooks)
+    } catch (error) {
+      console.error('Error fetching books:', error)
     }
+  }
 
-    const handleWishlistToggle = async (bookId) => {
-        if (isInWishlist(bookId)) {
-            await removeFromWishlist(bookId)
-        } else {
-            await addToWishlist(bookId)
-        }
+  const fetchCategories = async () => {
+    try {
+      // Simulate API call with sample data
+      await new Promise(resolve => setTimeout(resolve, 500))
+      setCategories(sampleCategories)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    const sortOptions = [
-        { value: 'title', label: 'Title A-Z' },
-        { value: 'author', label: 'Author A-Z' },
-        { value: 'price-low', label: 'Price: Low to High' },
-        { value: 'price-high', label: 'Price: High to Low' },
-        { value: 'rating', label: 'Highest Rated' }
-    ]
+  const fetchWishlist = async () => {
+    try {
+      // Simulate API call - start with some books in wishlist for demo
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setWishlist([1, 6, 11]) // Pre-add some books to wishlist for demo
+    } catch (error) {
+      console.error('Error fetching wishlist:', error)
+    }
+  }
 
+  const handleToggleWishlist = async (bookId) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 200))
+
+      setWishlist(prev =>
+        prev.includes(bookId)
+          ? prev.filter(id => id !== bookId)
+          : [...prev, bookId]
+      )
+
+      // Show feedback to user
+      const isAdding = !wishlist.includes(bookId)
+      const book = books.find(b => b.id === bookId)
+      const message = isAdding
+        ? `"${book?.title}" added to wishlist!`
+        : `"${book?.title}" removed from wishlist!`
+
+      // You can replace this with a toast notification
+      const notification = document.createElement('div')
+      notification.textContent = message
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--color-secondary);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-size: 14px;
+      `
+      document.body.appendChild(notification)
+      setTimeout(() => document.body.removeChild(notification), 3000)
+
+    } catch (error) {
+      console.error('Error toggling wishlist:', error)
+    }
+  }
+
+  const handleAddToCart = async (bookId) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 300))
+
+      const book = books.find(b => b.id === bookId)
+
+      // Show success feedback
+      const notification = document.createElement('div')
+      notification.textContent = `"${book?.title}" added to cart!`
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--color-primary);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-size: 14px;
+      `
+      document.body.appendChild(notification)
+      setTimeout(() => document.body.removeChild(notification), 3000)
+
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      alert('Error adding book to cart')
+    }
+  }
+
+  // Filter and sort books
+  const filteredBooks = books
+    .filter(book => {
+      const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesCategory = selectedCategory === 'all' || book.category === selectedCategory
+      return matchesSearch && matchesCategory
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'title':
+          return a.title.localeCompare(b.title)
+        case 'author':
+          return a.author.localeCompare(b.author)
+        case 'price-low':
+          return (a.discountedPrice || a.price) - (b.discountedPrice || b.price)
+        case 'price-high':
+          return (b.discountedPrice || b.price) - (a.discountedPrice || a.price)
+        case 'rating':
+          return (b.rating || 0) - (a.rating || 0)
+        default:
+          return 0
+      }
+    })
+
+  const BookCard = ({ book, isGridView }) => (
+    <div className={`book-card ${isGridView ? 'book-card--grid' : 'book-card--list'}`}>
+      <div className="book-image">
+        <Link to={`/books/${book.id}`}>
+          <img
+            src={book.image}
+            alt={book.title}
+            onError={(e) => {
+              e.target.src = 'https://via.placeholder.com/200x300/3b82f6/ffffff?text=Book'
+            }}
+          />
+        </Link>
+
+        {/* Fixed Wishlist Button */}
+        <WishlistButton
+          bookId={book.id}
+          isInWishlist={wishlist.includes(book.id)}
+          onToggle={handleToggleWishlist}
+          className="card-style"
+          size={16}
+        />
+      </div>
+
+      <div className="book-content">
+        <div className="book-info">
+          <h3 className="book-title">
+            <Link to={`/books/${book.id}`}>
+              {book.title}
+            </Link>
+          </h3>
+          <p className="book-author">by {book.author}</p>
+
+          {book.rating && (
+            <div className="book-rating">
+              <div className="stars">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={14}
+                    className={i < Math.floor(book.rating) ? 'star-filled' : 'star-empty'}
+                  />
+                ))}
+              </div>
+              <span className="rating-text">({book.rating})</span>
+            </div>
+          )}
+
+          {!isGridView && (
+            <p className="book-description">
+              {book.description?.substring(0, 150)}...
+            </p>
+          )}
+
+          <div className="book-price">
+            {book.discountedPrice && book.discountedPrice < book.price ? (
+              <>
+                <span className="price-current">₹{book.discountedPrice}</span>
+                <span className="price-original">₹{book.price}</span>
+                <span className="price-discount">
+                  {Math.round(((book.price - book.discountedPrice) / book.price) * 100)}% OFF
+                </span>
+              </>
+            ) : (
+              <span className="price-current">₹{book.price}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="book-actions">
+          <button
+            onClick={() => handleAddToCart(book.id)}
+            className="btn btn--primary"
+            disabled={book.stock === 0}
+          >
+            <ShoppingCart size={16} />
+            {book.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (isLoading) {
     return (
-        <div className="page">
-            <div className="container">
-                <div className="page__header">
-                    <h1 className="page__title">Book Catalog</h1>
-                    <p className="page__subtitle">Discover your next great read</p>
-                </div>
+      <div className="page">
+        <div className="container">
+          <div className="loading-container">
+            <div className="spinner spinner--lg"></div>
+            <p>Loading books...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-                {/* Search and Filter Controls */}
-                <div className="catalog-controls">
-                    <div className="catalog-controls__left">
-                        <div className="search-bar">
-                            <Search className="search-bar__icon" size={20} />
-                            <input
-                                type="text"
-                                placeholder="Search books, authors..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="search-bar__input"
-                            />
-                        </div>
+  return (
+    <div className="page">
+      <div className="container">
+        <div className="page__header">
+          <h1 className="page__title">Book Catalog</h1>
+          <p className="page__subtitle">Discover your next favorite book • {books.length} books available</p>
+        </div>
 
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`btn btn--outline filter-toggle ${showFilters ? 'filter-toggle--active' : ''}`}
-                        >
-                            <Filter size={18} />
-                            Filters
-                        </button>
-                    </div>
-
-                    <div className="catalog-controls__right">
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="form-input sort-select"
-                        >
-                            {sortOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-
-                        <div className="view-toggle">
-                            <button
-                                onClick={() => setViewMode('grid')}
-                                className={`view-toggle__btn ${viewMode === 'grid' ? 'view-toggle__btn--active' : ''}`}
-                                title="Grid view"
-                            >
-                                <Grid size={18} />
-                            </button>
-                            <button
-                                onClick={() => setViewMode('list')}
-                                className={`view-toggle__btn ${viewMode === 'list' ? 'view-toggle__btn--active' : ''}`}
-                                title="List view"
-                            >
-                                <List size={18} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Filter Panel */}
-                {showFilters && (
-                    <div className="filter-panel">
-                        <h3 className="filter-panel__title">Categories</h3>
-                        <div className="filter-categories">
-                            {categories.map(category => (
-                                <button
-                                    key={category.id}
-                                    onClick={() => setSelectedCategory(category.id)}
-                                    className={`category-btn ${selectedCategory === category.id ? 'category-btn--active' : ''}`}
-                                >
-                                    {category.name}
-                                    <span className="category-count">({category.count})</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Results Info */}
-                <div className="results-info">
-                    <p className="results-count">
-                        {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'} found
-                    </p>
-                </div>
-
-                {/* Books Display */}
-                {isLoading ? (
-                    <div className="loading-container">
-                        <div className="spinner spinner--lg"></div>
-                        <p>Loading books...</p>
-                    </div>
-                ) : filteredBooks.length > 0 ? (
-                    <div className={`books-container books-container--${viewMode}`}>
-                        {filteredBooks.map(book => (
-                            <div key={book.id} className={`book-item book-item--${viewMode}`}>
-                                <div className="book-item__image-container">
-                                    <img
-                                        src={book.image}
-                                        alt={book.title}
-                                        className="book-item__image"
-                                    />
-                                    <button
-                                        onClick={() => handleWishlistToggle(book.id)}
-                                        className={`wishlist-btn ${isInWishlist(book.id) ? 'wishlist-btn--active' : ''}`}
-                                        title={isInWishlist(book.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                                    >
-                                        <Heart size={18} />
-                                    </button>
-                                </div>
-
-                                <div className="book-item__content">
-                                    <div className="book-item__category">
-                                        <span className="badge badge--primary">{book.category}</span>
-                                    </div>
-
-                                    <h3 className="book-item__title">
-                                        <Link to={`/books/${book.id}`}>{book.title}</Link>
-                                    </h3>
-
-                                    <p className="book-item__author">by {book.author}</p>
-
-                                    {book.rating && (
-                                        <div className="book-item__rating">
-                                            <Star size={14} fill="currentColor" />
-                                            <span>{book.rating}</span>
-                                            <span className="text-muted">({book.reviews} reviews)</span>
-                                        </div>
-                                    )}
-
-                                    {viewMode === 'list' && book.description && (
-                                        <p className="book-item__description">
-                                            {book.description.substring(0, 120)}...
-                                        </p>
-                                    )}
-
-                                    <div className="book-item__footer">
-                                        <div className="book-item__price">₹{book.price.toLocaleString()}</div>
-                                        <div className="book-item__stock">
-                                            {book.quantity > 0 ? (
-                                                <span className="stock-available">{book.quantity} in stock</span>
-                                            ) : (
-                                                <span className="stock-unavailable">Out of stock</span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="book-item__actions">
-                                        <button
-                                            onClick={() => handleAddToCart(book.id)}
-                                            disabled={book.quantity === 0}
-                                            className="btn btn--primary"
-                                        >
-                                            <ShoppingCart size={18} />
-                                            Add to Cart
-                                        </button>
-                                        <Link
-                                            to={`/books/${book.id}`}
-                                            className="btn btn--outline"
-                                        >
-                                            View Details
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="empty-state">
-                        <BookOpen size={64} />
-                        <h3>No Books Found</h3>
-                        <p>
-                            {searchQuery
-                                ? `No books match your search for "${searchQuery}"`
-                                : selectedCategory !== 'all'
-                                    ? 'No books found in this category'
-                                    : 'No books available at the moment'
-                            }
-                        </p>
-                        {(searchQuery || selectedCategory !== 'all') && (
-                            <button
-                                onClick={() => {
-                                    setSearchQuery('')
-                                    setSelectedCategory('all')
-                                }}
-                                className="btn btn--primary mt-4"
-                            >
-                                Clear Filters
-                            </button>
-                        )}
-                    </div>
-                )}
+        {/* Filters and Controls */}
+        <div className="catalog-controls">
+          <div className="controls-left">
+            <div className="search-bar">
+              <Search className="search-bar__icon" size={20} />
+              <input
+                type="text"
+                placeholder="Search books or authors..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-bar__input"
+              />
             </div>
 
-            <style>{`
-        .catalog-controls {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: var(--space-4);
-          margin-bottom: var(--space-6);
-          flex-wrap: wrap;
-        }
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="form-input category-filter"
+            >
+              <option value="all">All Categories</option>
+              {categories.map(category => (
+                <option key={category.id || category} value={category.name || category}>
+                  {category.name || category}
+                </option>
+              ))}
+            </select>
 
-        .catalog-controls__left {
-          display: flex;
-          gap: var(--space-4);
-          flex: 1;
-          max-width: 500px;
-        }
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="form-input sort-filter"
+            >
+              <option value="title">Sort by Title</option>
+              <option value="author">Sort by Author</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Sort by Rating</option>
+            </select>
+          </div>
 
-        .catalog-controls__right {
-          display: flex;
-          gap: var(--space-3);
-          align-items: center;
-        }
+          <div className="controls-right">
+            <div className="view-toggle">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`view-button ${viewMode === 'grid' ? 'active' : ''}`}
+              >
+                <Grid size={20} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`view-button ${viewMode === 'list' ? 'active' : ''}`}
+              >
+                <List size={20} />
+              </button>
+            </div>
 
-        .filter-toggle {
-          white-space: nowrap;
-        }
-
-        .filter-toggle--active {
-          background: var(--color-primary);
-          color: var(--text-white);
-          border-color: var(--color-primary);
-        }
-
-        .sort-select {
-          min-width: 150px;
-        }
-
-        .view-toggle {
-          display: flex;
-          border: 1px solid var(--color-gray-300);
-          border-radius: var(--radius-lg);
-          overflow: hidden;
-        }
-
-        .view-toggle__btn {
-          padding: var(--space-2) var(--space-3);
-          border: none;
-          background: var(--bg-primary);
-          color: var(--text-muted);
-          cursor: pointer;
-          transition: all var(--transition-fast);
-        }
-
-        .view-toggle__btn:hover {
-          background: var(--color-gray-100);
-          color: var(--text-primary);
-        }
-
-        .view-toggle__btn--active {
-          background: var(--color-primary);
-          color: var(--text-white);
-        }
-
-        .filter-panel {
-          background: var(--bg-secondary);
-          border: 1px solid var(--color-gray-200);
-          border-radius: var(--radius-xl);
-          padding: var(--space-6);
-          margin-bottom: var(--space-6);
-        }
-
-        .filter-panel__title {
-          font-size: var(--font-size-lg);
-          font-weight: var(--font-weight-semibold);
-          margin-bottom: var(--space-4);
-        }
-
-        .filter-categories {
-          display: flex;
-          flex-wrap: wrap;
-          gap: var(--space-2);
-        }
-
-        .category-btn {
-          padding: var(--space-2) var(--space-4);
-          border: 1px solid var(--color-gray-300);
-          border-radius: var(--radius-full);
-          background: var(--bg-primary);
-          color: var(--text-secondary);
-          cursor: pointer;
-          transition: all var(--transition-fast);
-          font-size: var(--font-size-sm);
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-        }
-
-        .category-btn:hover {
-          border-color: var(--color-primary);
-          color: var(--color-primary);
-        }
-
-        .category-btn--active {
-          background: var(--color-primary);
-          border-color: var(--color-primary);
-          color: var(--text-white);
-        }
-
-        .category-count {
-          font-size: var(--font-size-xs);
-          opacity: 0.8;
-        }
-
-        .results-info {
-          margin-bottom: var(--space-6);
-        }
-
-        .results-count {
-          color: var(--text-secondary);
-          font-size: var(--font-size-sm);
-          margin: 0;
-        }
-
-        .books-container--grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: var(--space-6);
-        }
-
-        .books-container--list {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-4);
-        }
-
-        .book-item--grid {
-          background: var(--bg-primary);
-          border: 1px solid var(--color-gray-200);
-          border-radius: var(--radius-xl);
-          padding: var(--space-6);
-          transition: all var(--transition-base);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .book-item--grid::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 4px;
-          background: var(--gradient-primary);
-          transform: scaleX(0);
-          transition: transform var(--transition-base);
-        }
-
-        .book-item--grid:hover::before {
-          transform: scaleX(1);
-        }
-
-        .book-item--grid:hover {
-          transform: translateY(-4px);
-          box-shadow: var(--shadow-xl);
-        }
-
-        .book-item--list {
-          background: var(--bg-primary);
-          border: 1px solid var(--color-gray-200);
-          border-radius: var(--radius-xl);
-          padding: var(--space-6);
-          display: grid;
-          grid-template-columns: auto 1fr auto;
-          gap: var(--space-6);
-          align-items: start;
-          transition: all var(--transition-base);
-        }
-
-        .book-item--list:hover {
-          box-shadow: var(--shadow-md);
-          transform: translateX(4px);
-        }
-
-        .book-item__image-container {
-          position: relative;
-        }
-
-        .book-item__image {
-          width: 100%;
-          height: 200px;
-          object-fit: cover;
-          border-radius: var(--radius-lg);
-          margin-bottom: var(--space-4);
-        }
-
-        .book-item--list .book-item__image {
-          width: 120px;
-          height: 160px;
-          margin-bottom: 0;
-        }
-
-        .wishlist-btn {
-          position: absolute;
-          top: var(--space-2);
-          right: var(--space-2);
-          background: var(--bg-primary);
-          border: 1px solid var(--color-gray-300);
-          border-radius: var(--radius-full);
-          padding: var(--space-2);
-          color: var(--text-muted);
-          cursor: pointer;
-          transition: all var(--transition-fast);
-          box-shadow: var(--shadow-sm);
-        }
-
-        .wishlist-btn:hover {
-          border-color: var(--color-danger);
-          color: var(--color-danger);
-          transform: scale(1.1);
-        }
-
-        .wishlist-btn--active {
-          background: var(--color-danger);
-          border-color: var(--color-danger);
-          color: var(--text-white);
-        }
-
-        .book-item__content {
-          flex: 1;
-        }
-
-        .book-item__category {
-          margin-bottom: var(--space-2);
-        }
-
-        .book-item__title {
-          font-size: var(--font-size-lg);
-          font-weight: var(--font-weight-semibold);
-          margin-bottom: var(--space-2);
-          line-height: var(--line-height-tight);
-        }
-
-        .book-item__title a {
-          color: var(--text-primary);
-          text-decoration: none;
-          transition: color var(--transition-fast);
-        }
-
-        .book-item__title a:hover {
-          color: var(--color-primary);
-        }
-
-        .book-item__author {
-          color: var(--text-secondary);
-          margin-bottom: var(--space-3);
-          font-size: var(--font-size-sm);
-        }
-
-        .book-item__rating {
-          display: flex;
-          align-items: center;
-          gap: var(--space-1);
-          margin-bottom: var(--space-3);
-          color: var(--color-accent);
-          font-size: var(--font-size-sm);
-        }
-
-        .book-item__description {
-          color: var(--text-secondary);
-          margin-bottom: var(--space-4);
-          line-height: var(--line-height-relaxed);
-        }
-
-        .book-item__footer {
-          margin-bottom: var(--space-4);
-        }
-
-        .book-item__price {
-          font-size: var(--font-size-xl);
-          font-weight: var(--font-weight-bold);
-          color: var(--color-secondary);
-          margin-bottom: var(--space-2);
-        }
-
-        .book-item__stock {
-          font-size: var(--font-size-sm);
-        }
-
-        .stock-available {
-          color: var(--color-success);
-        }
-
-        .stock-unavailable {
-          color: var(--color-danger);
-          font-weight: var(--font-weight-medium);
-        }
-
-        .book-item__actions {
-          display: flex;
-          gap: var(--space-2);
-          flex-wrap: wrap;
-        }
-
-        .book-item--list .book-item__actions {
-          flex-direction: column;
-          align-self: center;
-          min-width: 150px;
-        }
-
-        .loading-container {
-          text-align: center;
-          padding: var(--space-16);
-          color: var(--text-muted);
-        }
-
-        .empty-state {
-          text-align: center;
-          padding: var(--space-16);
-          color: var(--text-muted);
-        }
-
-        .empty-state h3 {
-          margin: var(--space-4) 0 var(--space-2);
-          color: var(--text-secondary);
-        }
-
-        @media (max-width: 768px) {
-          .catalog-controls {
-            flex-direction: column;
-            align-items: stretch;
-            gap: var(--space-4);
-          }
-
-          .catalog-controls__left,
-          .catalog-controls__right {
-            width: 100%;
-            justify-content: space-between;
-          }
-
-          .catalog-controls__right {
-            display: flex;
-            gap: var(--space-3);
-          }
-
-          .sort-select {
-            flex: 1;
-          }
-
-          .books-container--grid {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          }
-
-          .book-item--list {
-            grid-template-columns: auto 1fr;
-            gap: var(--space-4);
-          }
-
-          .book-item--list .book-item__actions {
-            grid-column: 1 / -1;
-            flex-direction: row;
-            justify-content: center;
-            margin-top: var(--space-4);
-            min-width: auto;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .catalog-controls__left {
-            flex-direction: column;
-            gap: var(--space-3);
-          }
-
-          .books-container--grid {
-            grid-template-columns: 1fr;
-          }
-
-          .book-item--list {
-            grid-template-columns: 1fr;
-            text-align: center;
-          }
-
-          .book-item--list .book-item__image {
-            width: 100px;
-            height: 140px;
-            margin: 0 auto;
-          }
-        }
-      `}</style>
+            <div className="results-count">
+              {filteredBooks.length} books found
+            </div>
+          </div>
         </div>
-    )
+
+        {/* Results Info */}
+        {searchQuery || selectedCategory !== 'all' ? (
+          <div className="results-info">
+            <p>
+              Showing {filteredBooks.length} of {books.length} books
+              {searchQuery && ` for "${searchQuery}"`}
+              {selectedCategory !== 'all' && ` in ${selectedCategory}`}
+            </p>
+          </div>
+        ) : null}
+
+        {/* Books Display */}
+        <div className={`books-container ${viewMode === 'grid' ? 'books-grid' : 'books-list'}`}>
+          {filteredBooks.map(book => (
+            <BookCard
+              key={book.id}
+              book={book}
+              isGridView={viewMode === 'grid'}
+            />
+          ))}
+        </div>
+
+        {filteredBooks.length === 0 && (
+          <div className="no-results">
+            <Search size={48} />
+            <h3>No books found</h3>
+            <p>
+              {searchQuery || selectedCategory !== 'all'
+                ? 'Try adjusting your search or filters to find more books.'
+                : 'No books available at the moment.'}
+            </p>
+            {(searchQuery || selectedCategory !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('')
+                  setSelectedCategory('all')
+                }}
+                className="btn btn--primary"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <style>{`
+                .loading-container {
+                    text-align: center;
+                    padding: var(--space-16);
+                    color: var(--text-muted);
+                }
+
+                .demo-features {
+                    display: flex;
+                    justify-content: center;
+                    gap: var(--space-6);
+                    margin-top: var(--space-3);
+                    flex-wrap: wrap;
+                }
+
+                .demo-feature {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    color: var(--color-primary-dark);
+                    font-size: var(--font-size-sm);
+                    font-weight: var(--font-weight-medium);
+                }
+
+                .catalog-controls {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: var(--space-4);
+                    margin-bottom: var(--space-6);
+                    flex-wrap: wrap;
+                }
+
+                .controls-left {
+                    display: flex;
+                    gap: var(--space-4);
+                    flex: 1;
+                    max-width: 800px;
+                }
+
+                .controls-right {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-4);
+                }
+
+                .category-filter,
+                .sort-filter {
+                    min-width: 150px;
+                }
+
+                .results-info {
+                    margin-bottom: var(--space-4);
+                    padding: var(--space-3);
+                    background: var(--bg-secondary);
+                    border-radius: var(--radius-lg);
+                    color: var(--text-secondary);
+                    font-size: var(--font-size-sm);
+                }
+
+                .view-toggle {
+                    display: flex;
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-lg);
+                    overflow: hidden;
+                }
+
+                .view-button {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: var(--space-2) var(--space-3);
+                    border: none;
+                    background: var(--bg-secondary);
+                    color: var(--text-secondary);
+                    cursor: pointer;
+                    transition: all var(--transition-fast);
+                }
+
+                .view-button:hover {
+                    background: var(--color-primary-light);
+                    color: var(--color-primary);
+                }
+
+                .view-button.active {
+                    background: var(--color-primary);
+                    color: white;
+                }
+
+                .results-count {
+                    font-size: var(--font-size-sm);
+                    color: var(--text-muted);
+                    white-space: nowrap;
+                }
+
+                /* Grid View */
+                .books-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: var(--space-6);
+                }
+
+                .book-card--grid {
+                    background: var(--bg-primary);
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-xl);
+                    overflow: hidden;
+                    transition: all var(--transition-base);
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .book-card--grid:hover {
+                    transform: translateY(-4px);
+                    box-shadow: var(--shadow-xl);
+                    border-color: var(--color-primary);
+                }
+
+                .book-card--grid .book-image {
+                    position: relative;
+                    height: 250px;
+                    background: var(--bg-secondary);
+                }
+
+                .book-card--grid .book-content {
+                    padding: var(--space-4);
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                }
+
+                /* List View */
+                .books-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-4);
+                }
+
+                .book-card--list {
+                    background: var(--bg-primary);
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-xl);
+                    overflow: hidden;
+                    transition: all var(--transition-base);
+                    display: flex;
+                    height: 200px;
+                }
+
+                .book-card--list:hover {
+                    transform: translateY(-2px);
+                    box-shadow: var(--shadow-lg);
+                    border-color: var(--color-primary);
+                }
+
+                .book-card--list .book-image {
+                    position: relative;
+                    width: 140px;
+                    flex-shrink: 0;
+                    background: var(--bg-secondary);
+                }
+
+                .book-card--list .book-content {
+                    padding: var(--space-4);
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    flex: 1;
+                }
+
+                /* Common Book Card Styles */
+                .book-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: transform var(--transition-base);
+                }
+
+                .book-card:hover .book-image img {
+                    transform: scale(1.02);
+                }
+
+                .book-info {
+                    flex: 1;
+                    margin-bottom: var(--space-4);
+                }
+
+                .book-title {
+                    margin-bottom: var(--space-2);
+                }
+
+                .book-title a {
+                    font-size: var(--font-size-base);
+                    font-weight: var(--font-weight-semibold);
+                    color: var(--text-primary);
+                    text-decoration: none;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    transition: color var(--transition-fast);
+                }
+
+                .book-title a:hover {
+                    color: var(--color-primary);
+                }
+
+                .book-author {
+                    color: var(--text-secondary);
+                    font-size: var(--font-size-sm);
+                    margin-bottom: var(--space-3);
+                }
+
+                .book-rating {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    margin-bottom: var(--space-3);
+                }
+
+                .stars {
+                    display: flex;
+                    gap: var(--space-1);
+                }
+
+                .star-filled {
+                    color: #fbbf24;
+                    fill: currentColor;
+                }
+
+                .star-empty {
+                    color: var(--color-gray-300);
+                }
+
+                .rating-text {
+                    font-size: var(--font-size-sm);
+                    color: var(--text-muted);
+                }
+
+                .book-description {
+                    color: var(--text-secondary);
+                    font-size: var(--font-size-sm);
+                    line-height: 1.5;
+                    margin-bottom: var(--space-3);
+                }
+
+                .book-price {
+                    margin-bottom: var(--space-4);
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    flex-wrap: wrap;
+                }
+
+                .price-current {
+                    font-size: var(--font-size-lg);
+                    font-weight: var(--font-weight-bold);
+                    color: var(--color-secondary);
+                }
+
+                .price-original {
+                    font-size: var(--font-size-sm);
+                    color: var(--text-muted);
+                    text-decoration: line-through;
+                }
+
+                .price-discount {
+                    background: var(--color-secondary);
+                    color: white;
+                    font-size: var(--font-size-xs);
+                    font-weight: var(--font-weight-semibold);
+                    padding: var(--space-1) var(--space-2);
+                    border-radius: var(--radius-base);
+                }
+
+                .book-actions {
+                    display: flex;
+                    gap: var(--space-2);
+                }
+
+                .book-card--grid .book-actions {
+                    flex-direction: column;
+                }
+
+                .book-card--list .book-actions {
+                    flex-direction: row;
+                    align-items: center;
+                }
+
+                .no-results {
+                    text-align: center;
+                    padding: var(--space-16);
+                    color: var(--text-muted);
+                }
+
+                .no-results h3 {
+                    margin: var(--space-4) 0 var(--space-2);
+                    color: var(--text-secondary);
+                }
+
+                @media (max-width: 1024px) {
+                    .catalog-controls {
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+
+                    .controls-left {
+                        max-width: 100%;
+                        flex-wrap: wrap;
+                    }
+
+                    .controls-right {
+                        justify-content: space-between;
+                    }
+
+                    .books-grid {
+                        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                    }
+                }
+
+                @media (max-width: 768px) {
+                    .controls-left {
+                        flex-direction: column;
+                        gap: var(--space-3);
+                    }
+
+                    .books-grid {
+                        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                        gap: var(--space-4);
+                    }
+
+                    .book-card--list {
+                        height: auto;
+                        flex-direction: column;
+                    }
+
+                    .book-card--list .book-image {
+                        width: 100%;
+                        height: 200px;
+                    }
+
+                    .book-card--list .book-actions {
+                        flex-direction: column;
+                    }
+
+                    .view-toggle {
+                        order: -1;
+                        width: 100%;
+                        justify-content: center;
+                    }
+
+                    .view-button {
+                        flex: 1;
+                        justify-content: center;
+                    }
+
+                    .demo-features {
+                        flex-direction: column;
+                        gap: var(--space-2);
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .books-grid {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .book-actions .btn {
+                        width: 100%;
+                    }
+                }
+            `}</style>
+    </div>
+  )
 }
