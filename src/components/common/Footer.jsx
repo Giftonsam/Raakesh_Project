@@ -60,7 +60,7 @@ export default function Footer() {
               </div>
               <div className="footer__contact-item">
                 <Phone size={16} />
-                <span>+91 98765 43210</span>
+                <span>+91 63805 96997</span>
               </div>
               <div className="footer__contact-item">
                 <MapPin size={16} />

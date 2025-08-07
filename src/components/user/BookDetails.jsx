@@ -41,7 +41,7 @@ export default function BookDetails() {
                     </div>
                 </div>
 
-                <style jsx>{`
+                <style>{`
           .error-state {
             text-align: center;
             padding: var(--space-16);
@@ -258,7 +258,7 @@ export default function BookDetails() {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
         .back-nav {
           margin-bottom: var(--space-6);
         }
