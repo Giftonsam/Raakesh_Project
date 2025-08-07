@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext'
 import { BookProvider } from './context/BookContext'
 import { CartProvider } from './context/CartContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { WishlistProvider } from './context/WishlistContext'
 import { useAuth } from './hooks/useAuth'
 
 // Common Components
@@ -178,7 +179,9 @@ export default function App() {
         <AuthProvider>
           <BookProvider>
             <CartProvider>
-              <AppContent />
+              <WishlistProvider>
+                <AppContent />
+              </WishlistProvider>
             </CartProvider>
           </BookProvider>
         </AuthProvider>

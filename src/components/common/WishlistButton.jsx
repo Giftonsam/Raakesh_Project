@@ -1,15 +1,15 @@
 // src/components/common/WishlistButton.jsx
-import React, { useState } from 'react'
+import React from 'react'
 import { Heart } from 'lucide-react'
+import { useWishlist } from '../../context/WishlistContext'
 
 export default function WishlistButton({
     bookId,
-    isInWishlist = false,
-    onToggle,
     size = 20,
     className = ""
 }) {
-    const [isLoading, setIsLoading] = useState(false)
+    const { isInWishlist, toggleWishlist, isLoading } = useWishlist()
+    const isBookInWishlist = isInWishlist(bookId)
 
     const handleClick = async (e) => {
         e.preventDefault()
@@ -17,31 +17,26 @@ export default function WishlistButton({
 
         if (isLoading) return
 
-        setIsLoading(true)
-        try {
-            await onToggle(bookId)
-        } finally {
-            setIsLoading(false)
-        }
+        await toggleWishlist(bookId)
     }
 
     return (
         <button
             onClick={handleClick}
             disabled={isLoading}
-            className={`wishlist-button ${isInWishlist ? 'wishlist-button--active' : ''} ${className}`}
-            title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-            aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+            className={`wishlist-button ${isBookInWishlist ? 'wishlist-button--active' : ''} ${className}`}
+            title={isBookInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+            aria-label={isBookInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
         >
             <Heart
                 size={size}
                 className="wishlist-icon"
-                fill={isInWishlist ? 'currentColor' : 'none'}
+                fill={isBookInWishlist ? 'currentColor' : 'none'}
                 stroke="currentColor"
             />
             {isLoading && <span className="wishlist-loading">Loading...</span>}
 
-            <style>{`
+            <style jsx>{`
                 .wishlist-button {
                     display: flex;
                     align-items: center;

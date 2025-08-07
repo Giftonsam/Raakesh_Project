@@ -1,71 +1,56 @@
 // src/components/user/Wishlist.jsx
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { Heart, ShoppingCart, Trash2, Eye, Star } from 'lucide-react'
+import { useWishlist } from '../../context/WishlistContext'
 import WishlistButton from '../common/WishlistButton'
 
 export default function Wishlist() {
-  const [wishlistItems, setWishlistItems] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    fetchWishlistItems()
-  }, [])
-
-  const fetchWishlistItems = async () => {
-    setIsLoading(true)
-    try {
-      // Replace with your API call
-      const response = await fetch('/api/user/wishlist')
-      const data = await response.json()
-      setWishlistItems(data)
-    } catch (error) {
-      console.error('Error fetching wishlist:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleToggleWishlist = async (bookId) => {
-    try {
-      // Replace with your API call
-      const response = await fetch('/api/user/wishlist/toggle', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ bookId })
-      })
-
-      if (response.ok) {
-        // Remove item from wishlist immediately for better UX
-        setWishlistItems(prev => prev.filter(item => item.id !== bookId))
-      }
-    } catch (error) {
-      console.error('Error toggling wishlist:', error)
-    }
-  }
+  const { wishlistItems, isLoading, clearWishlist } = useWishlist()
 
   const handleAddToCart = async (bookId) => {
     try {
-      // Replace with your API call
-      const response = await fetch('/api/user/cart/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ bookId, quantity: 1 })
-      })
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 300))
 
-      if (response.ok) {
-        alert('Book added to cart!')
-      }
+      const book = wishlistItems.find(b => b.id === bookId)
+
+      // Show success notification
+      const notification = document.createElement('div')
+      notification.textContent = `"${book?.title}" added to cart!`
+      notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--color-primary);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                font-size: 14px;
+                font-weight: 500;
+                max-width: 300px;
+            `
+      document.body.appendChild(notification)
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification)
+        }
+      }, 3000)
+
     } catch (error) {
       console.error('Error adding to cart:', error)
     }
   }
 
-  if (isLoading) {
+  const handleClearWishlist = async () => {
+    if (window.confirm('Are you sure you want to clear your entire wishlist?')) {
+      await clearWishlist()
+    }
+  }
+
+  if (isLoading && wishlistItems.length === 0) {
     return (
       <div className="page">
         <div className="container">
@@ -93,13 +78,21 @@ export default function Wishlist() {
             </div>
             <h2>Your wishlist is empty</h2>
             <p>Start adding books you love to keep track of them!</p>
-            <Link to="/books" className="btn btn--primary btn--lg">
-              Browse Books
-            </Link>
+            <div className="empty-actions">
+              <Link to="/books" className="btn btn--primary btn--lg">
+                Browse Books
+              </Link>
+            </div>
           </div>
         </div>
 
         <style>{`
+                    .loading-container {
+                        text-align: center;
+                        padding: var(--space-16);
+                        color: var(--text-muted);
+                    }
+
                     .empty-wishlist {
                         text-align: center;
                         padding: var(--space-16);
@@ -110,6 +103,7 @@ export default function Wishlist() {
                         opacity: 0.3;
                         margin-bottom: var(--space-6);
                         animation: pulse 2s ease-in-out infinite;
+                        color: #e91e63;
                     }
 
                     .empty-wishlist h2 {
@@ -118,9 +112,13 @@ export default function Wishlist() {
                         color: var(--text-secondary);
                     }
 
+                    .empty-actions {
+                        margin-top: var(--space-8);
+                    }
+
                     @keyframes pulse {
-                        0%, 100% { transform: scale(1); }
-                        50% { transform: scale(1.05); }
+                        0%, 100% { transform: scale(1); opacity: 0.3; }
+                        50% { transform: scale(1.05); opacity: 0.5; }
                     }
                 `}</style>
       </div>
@@ -135,6 +133,25 @@ export default function Wishlist() {
           <p className="page__subtitle">{wishlistItems.length} books in your wishlist</p>
         </div>
 
+        {/* Wishlist Actions */}
+        <div className="wishlist-actions">
+          <div className="wishlist-info">
+            <p>You have {wishlistItems.length} book{wishlistItems.length !== 1 ? 's' : ''} in your wishlist</p>
+          </div>
+          <div className="action-buttons">
+            {wishlistItems.length > 0 && (
+              <button
+                onClick={handleClearWishlist}
+                className="btn btn--outline btn--sm"
+                disabled={isLoading}
+              >
+                <Trash2 size={16} />
+                Clear All
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="wishlist-grid">
           {wishlistItems.map(book => (
             <div key={book.id} className="wishlist-card">
@@ -147,11 +164,9 @@ export default function Wishlist() {
                   }}
                 />
 
-                {/* Fixed Wishlist Button */}
+                {/* Wishlist Button */}
                 <WishlistButton
                   bookId={book.id}
-                  isInWishlist={true}
-                  onToggle={handleToggleWishlist}
                   className="card-style"
                   size={16}
                 />
@@ -186,6 +201,9 @@ export default function Wishlist() {
                       <>
                         <span className="price-current">₹{book.discountedPrice}</span>
                         <span className="price-original">₹{book.price}</span>
+                        <span className="price-discount">
+                          {Math.round(((book.price - book.discountedPrice) / book.price) * 100)}% OFF
+                        </span>
                       </>
                     ) : (
                       <span className="price-current">₹{book.price}</span>
@@ -218,10 +236,27 @@ export default function Wishlist() {
       </div>
 
       <style>{`
-                .loading-container {
-                    text-align: center;
-                    padding: var(--space-16);
-                    color: var(--text-muted);
+                .wishlist-actions {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: var(--space-6);
+                    padding: var(--space-4);
+                    background: var(--bg-secondary);
+                    border-radius: var(--radius-lg);
+                    flex-wrap: wrap;
+                    gap: var(--space-4);
+                }
+
+                .wishlist-info p {
+                    margin: 0;
+                    color: var(--text-secondary);
+                    font-size: var(--font-size-sm);
+                }
+
+                .action-buttons {
+                    display: flex;
+                    gap: var(--space-2);
                 }
 
                 .wishlist-grid {
@@ -325,6 +360,10 @@ export default function Wishlist() {
 
                 .book-price {
                     margin-bottom: var(--space-4);
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    flex-wrap: wrap;
                 }
 
                 .price-current {
@@ -337,7 +376,15 @@ export default function Wishlist() {
                     font-size: var(--font-size-sm);
                     color: var(--text-muted);
                     text-decoration: line-through;
-                    margin-left: var(--space-2);
+                }
+
+                .price-discount {
+                    background: var(--color-secondary);
+                    color: white;
+                    font-size: var(--font-size-xs);
+                    font-weight: var(--font-weight-semibold);
+                    padding: var(--space-1) var(--space-2);
+                    border-radius: var(--radius-base);
                 }
 
                 .book-actions {
@@ -367,6 +414,12 @@ export default function Wishlist() {
 
                     .book-actions .btn {
                         flex: 1;
+                    }
+
+                    .wishlist-actions {
+                        flex-direction: column;
+                        align-items: stretch;
+                        text-align: center;
                     }
                 }
             `}</style>
