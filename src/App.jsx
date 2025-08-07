@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext'
 import { BookProvider } from './context/BookContext'
 import { CartProvider } from './context/CartContext'
+import { ThemeProvider } from './context/ThemeContext'
 import { useAuth } from './hooks/useAuth'
 
 // Common Components
@@ -173,13 +174,15 @@ function AppContent() {
 export default function App() {
   return (
     <Router>
-      <AuthProvider>
-        <BookProvider>
-          <CartProvider>
-            <AppContent />
-          </CartProvider>
-        </BookProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <BookProvider>
+            <CartProvider>
+              <AppContent />
+            </CartProvider>
+          </BookProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   )
 }

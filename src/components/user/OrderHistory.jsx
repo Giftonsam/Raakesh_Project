@@ -19,7 +19,8 @@ import {
     Star,
     Search,
     ArrowLeft,
-    RefreshCw
+    RefreshCw,
+    MessageSquare
 } from 'lucide-react'
 
 export default function OrderHistory() {
@@ -31,6 +32,7 @@ export default function OrderHistory() {
     const [searchQuery, setSearchQuery] = useState('')
     const [dateFilter, setDateFilter] = useState('all')
     const [selectedOrder, setSelectedOrder] = useState(null)
+    const [feedbackModal, setFeedbackModal] = useState({ show: false, book: null, orderId: null })
 
     // Filter orders for current user
     const userOrders = useMemo(() => {
@@ -47,7 +49,7 @@ export default function OrderHistory() {
         // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase()
-            filtered = filtered.filter(order => 
+            filtered = filtered.filter(order =>
                 order.id.toString().includes(query) ||
                 order.status.toLowerCase().includes(query)
             )
@@ -149,6 +151,25 @@ export default function OrderHistory() {
         alert('Items added to cart for reordering!')
     }
 
+    const openFeedbackModal = (book, orderId) => {
+        setFeedbackModal({ show: true, book, orderId })
+    }
+
+    const closeFeedbackModal = () => {
+        setFeedbackModal({ show: false, book: null, orderId: null })
+    }
+
+    const submitFeedback = (feedbackData) => {
+        // Handle feedback submission
+        console.log('Feedback submitted:', {
+            orderId: feedbackModal.orderId,
+            bookId: feedbackModal.book.id,
+            ...feedbackData
+        })
+        alert('Thank you for your feedback!')
+        closeFeedbackModal()
+    }
+
     if (isLoading) {
         return (
             <div className="page">
@@ -185,7 +206,7 @@ export default function OrderHistory() {
                         </div>
                         <h2>No Orders Yet</h2>
                         <p>When you place your first order, it will appear here. Start exploring our amazing book collection!</p>
-                        
+
                         <div className="empty-suggestions">
                             <Link to="/books" className="btn btn--primary btn--lg">
                                 <ArrowLeft size={20} />
@@ -198,7 +219,7 @@ export default function OrderHistory() {
                     </div>
                 </div>
 
-                <style jsx>{`
+                <style>{`
                     .empty-orders {
                         text-align: center;
                         padding: var(--space-16);
@@ -357,7 +378,7 @@ export default function OrderHistory() {
                                             </span>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="order-status">
                                         <span className={`status-badge status-badge--${getStatusColor(order.status)}`}>
                                             {getStatusIcon(order.status)}
@@ -370,27 +391,37 @@ export default function OrderHistory() {
                                     <div className="order-items">
                                         <h4>Items ({orderItems.length})</h4>
                                         <div className="items-preview">
-                                            {orderItems.slice(0, 3).map(item => (
-                                                <div key={item.bookId} className="item-preview">
-                                                    <img
-                                                        src={item.book.image}
-                                                        alt={item.book.title}
-                                                        className="item-image"
-                                                        onError={(e) => {
-                                                            e.target.src = 'https://via.placeholder.com/60x80/3b82f6/ffffff?text=Book'
-                                                        }}
-                                                    />
-                                                    <div className="item-details">
-                                                        <div className="item-title">{item.book.title}</div>
-                                                        <div className="item-quantity">Qty: {item.quantity}</div>
+                                            {orderItems.map(item => (
+                                                <div key={item.bookId} className="item-preview-card">
+                                                    <div className="item-preview">
+                                                        <img
+                                                            src={item.book.image}
+                                                            alt={item.book.title}
+                                                            className="item-image"
+                                                            onError={(e) => {
+                                                                e.target.src = 'https://via.placeholder.com/60x80/3b82f6/ffffff?text=Book'
+                                                            }}
+                                                        />
+                                                        <div className="item-details">
+                                                            <div className="item-title">{item.book.title}</div>
+                                                            <div className="item-author">by {item.book.author}</div>
+                                                            <div className="item-quantity">Qty: {item.quantity}</div>
+                                                        </div>
                                                     </div>
+                                                    {order.status === 'delivered' && (
+                                                        <div className="item-actions">
+                                                            <button
+                                                                onClick={() => openFeedbackModal(item.book, order.id)}
+                                                                className="btn btn--secondary btn--xs"
+                                                                title="Give feedback for this book"
+                                                            >
+                                                                <MessageSquare size={12} />
+                                                                Review
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
-                                            {orderItems.length > 3 && (
-                                                <div className="more-items">
-                                                    +{orderItems.length - 3} more
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
 
@@ -402,7 +433,7 @@ export default function OrderHistory() {
                                             <Eye size={16} />
                                             View Details
                                         </button>
-                                        
+
                                         <button
                                             onClick={() => downloadInvoice(order.id)}
                                             className="btn btn--outline btn--sm"
@@ -412,23 +443,13 @@ export default function OrderHistory() {
                                         </button>
 
                                         {order.status === 'delivered' && (
-                                            <>
-                                                <button
-                                                    onClick={() => reorderItems(order)}
-                                                    className="btn btn--primary btn--sm"
-                                                >
-                                                    <RefreshCw size={16} />
-                                                    Reorder
-                                                </button>
-                                                
-                                                <Link 
-                                                    to="/feedback" 
-                                                    className="btn btn--secondary btn--sm"
-                                                >
-                                                    <Star size={16} />
-                                                    Review
-                                                </Link>
-                                            </>
+                                            <button
+                                                onClick={() => reorderItems(order)}
+                                                className="btn btn--primary btn--sm"
+                                            >
+                                                <RefreshCw size={16} />
+                                                Reorder
+                                            </button>
                                         )}
                                     </div>
                                 </div>
@@ -454,13 +475,13 @@ export default function OrderHistory() {
                                         </div>
                                     </div>
                                     <div className="progress-bar">
-                                        <div 
+                                        <div
                                             className="progress-fill"
                                             style={{
                                                 width: order.status === 'pending' ? '25%' :
-                                                       order.status === 'processing' ? '50%' :
-                                                       order.status === 'shipped' ? '75%' :
-                                                       order.status === 'delivered' ? '100%' : '0%'
+                                                    order.status === 'processing' ? '50%' :
+                                                        order.status === 'shipped' ? '75%' :
+                                                            order.status === 'delivered' ? '100%' : '0%'
                                             }}
                                         ></div>
                                     </div>
@@ -494,14 +515,14 @@ export default function OrderHistory() {
                         <div className="modal modal--large" onClick={(e) => e.stopPropagation()}>
                             <div className="modal__header">
                                 <h3 className="modal__title">Order #{selectedOrder.id} Details</h3>
-                                <button 
+                                <button
                                     onClick={() => setSelectedOrder(null)}
                                     className="modal__close"
                                 >
                                     ×
                                 </button>
                             </div>
-                            
+
                             <div className="modal__body">
                                 <div className="order-details-grid">
                                     <div className="order-summary">
@@ -531,14 +552,14 @@ export default function OrderHistory() {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="order-items-detail">
                                         <h4>Items Ordered</h4>
                                         <div className="items-list">
                                             {selectedOrder.items?.map(item => {
                                                 const book = getBookById(item.bookId)
                                                 if (!book) return null
-                                                
+
                                                 return (
                                                     <div key={item.bookId} className="item-detail">
                                                         <img
@@ -557,6 +578,18 @@ export default function OrderHistory() {
                                                                 <span>₹{book.price.toLocaleString()} each</span>
                                                                 <span className="item-total">₹{(book.price * item.quantity).toLocaleString()}</span>
                                                             </div>
+                                                            {selectedOrder.status === 'delivered' && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedOrder(null)
+                                                                        openFeedbackModal(book, selectedOrder.id)
+                                                                    }}
+                                                                    className="btn btn--secondary btn--xs mt-2"
+                                                                >
+                                                                    <MessageSquare size={12} />
+                                                                    Give Feedback
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 )
@@ -565,16 +598,16 @@ export default function OrderHistory() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="modal__footer">
-                                <button 
+                                <button
                                     onClick={() => downloadInvoice(selectedOrder.id)}
                                     className="btn btn--outline"
                                 >
                                     <Download size={16} />
                                     Download Invoice
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setSelectedOrder(null)}
                                     className="btn btn--primary"
                                 >
@@ -584,9 +617,19 @@ export default function OrderHistory() {
                         </div>
                     </div>
                 )}
+
+                {/* Feedback Modal */}
+                {feedbackModal.show && (
+                    <FeedbackModal
+                        book={feedbackModal.book}
+                        orderId={feedbackModal.orderId}
+                        onClose={closeFeedbackModal}
+                        onSubmit={submitFeedback}
+                    />
+                )}
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .order-stats {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -782,13 +825,21 @@ export default function OrderHistory() {
                     gap: var(--space-3);
                 }
 
+                .item-preview-card {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: var(--space-3);
+                    background: var(--bg-secondary);
+                    border-radius: var(--radius-lg);
+                    border: 1px solid var(--color-gray-200);
+                }
+
                 .item-preview {
                     display: flex;
                     gap: var(--space-3);
                     align-items: center;
-                    padding: var(--space-2);
-                    background: var(--bg-secondary);
-                    border-radius: var(--radius-lg);
+                    flex: 1;
                 }
 
                 .item-image {
@@ -805,18 +856,19 @@ export default function OrderHistory() {
                     margin-bottom: var(--space-1);
                 }
 
+                .item-author {
+                    font-size: var(--font-size-xs);
+                    color: var(--text-secondary);
+                    margin-bottom: var(--space-1);
+                }
+
                 .item-quantity {
                     font-size: var(--font-size-xs);
                     color: var(--text-muted);
                 }
 
-                .more-items {
-                    text-align: center;
-                    color: var(--text-muted);
-                    font-size: var(--font-size-sm);
-                    padding: var(--space-2);
-                    background: var(--bg-secondary);
-                    border-radius: var(--radius-lg);
+                .item-actions {
+                    margin-left: var(--space-2);
                 }
 
                 .order-actions {
@@ -973,6 +1025,10 @@ export default function OrderHistory() {
                     color: var(--color-secondary);
                 }
 
+                .mt-2 {
+                    margin-top: var(--space-2);
+                }
+
                 @media (max-width: 1024px) {
                     .order-details-grid {
                         grid-template-columns: 1fr;
@@ -1013,6 +1069,17 @@ export default function OrderHistory() {
                     .progress-step span {
                         display: none;
                     }
+
+                    .item-preview-card {
+                        flex-direction: column;
+                        align-items: stretch;
+                        gap: var(--space-2);
+                    }
+
+                    .item-actions {
+                        margin-left: 0;
+                        align-self: flex-end;
+                    }
                 }
 
                 @media (max-width: 480px) {
@@ -1022,6 +1089,203 @@ export default function OrderHistory() {
 
                     .stat-card {
                         flex-direction: column;
+                        text-align: center;
+                    }
+                }
+            `}</style>
+        </div>
+    )
+}
+
+// Feedback Modal Component
+function FeedbackModal({ book, orderId, onClose, onSubmit }) {
+    const [rating, setRating] = useState(5)
+    const [review, setReview] = useState('')
+    const [hoveredStar, setHoveredStar] = useState(0)
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        onSubmit({ rating, review })
+    }
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal modal--medium" onClick={(e) => e.stopPropagation()}>
+                <div className="modal__header">
+                    <h3 className="modal__title">Review "{book.title}"</h3>
+                    <button onClick={onClose} className="modal__close">×</button>
+                </div>
+
+                <div className="modal__body">
+                    <div className="feedback-content">
+                        <div className="book-preview">
+                            <img
+                                src={book.image}
+                                alt={book.title}
+                                className="book-preview-image"
+                                onError={(e) => {
+                                    e.target.src = 'https://via.placeholder.com/120x160/3b82f6/ffffff?text=Book'
+                                }}
+                            />
+                            <div className="book-info">
+                                <h4>{book.title}</h4>
+                                <p>by {book.author}</p>
+                                <span className="order-ref">Order #{orderId}</span>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="feedback-form">
+                            <div className="rating-section">
+                                <label className="form-label">Your Rating</label>
+                                <div className="star-rating">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            className={`star ${star <= (hoveredStar || rating) ? 'active' : ''}`}
+                                            onClick={() => setRating(star)}
+                                            onMouseEnter={() => setHoveredStar(star)}
+                                            onMouseLeave={() => setHoveredStar(0)}
+                                        >
+                                            <Star size={24} fill="currentColor" />
+                                        </button>
+                                    ))}
+                                    <span className="rating-text">
+                                        {rating === 1 ? 'Poor' :
+                                            rating === 2 ? 'Fair' :
+                                                rating === 3 ? 'Good' :
+                                                    rating === 4 ? 'Very Good' :
+                                                        'Excellent'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="review-section">
+                                <label htmlFor="review" className="form-label">Your Review (Optional)</label>
+                                <textarea
+                                    id="review"
+                                    value={review}
+                                    onChange={(e) => setReview(e.target.value)}
+                                    placeholder="Share your thoughts about this book..."
+                                    className="form-textarea"
+                                    rows="4"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div className="modal__footer">
+                    <button onClick={onClose} className="btn btn--outline">
+                        Cancel
+                    </button>
+                    <button onClick={handleSubmit} className="btn btn--primary">
+                        Submit Review
+                    </button>
+                </div>
+            </div>
+
+            <style>{`
+                .modal--medium {
+                    max-width: 500px;
+                }
+
+                .feedback-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-6);
+                }
+
+                .book-preview {
+                    display: flex;
+                    gap: var(--space-4);
+                    padding: var(--space-4);
+                    background: var(--bg-secondary);
+                    border-radius: var(--radius-lg);
+                }
+
+                .book-preview-image {
+                    width: 80px;
+                    height: 112px;
+                    object-fit: cover;
+                    border-radius: var(--radius-base);
+                }
+
+                .book-info h4 {
+                    font-size: var(--font-size-base);
+                    font-weight: var(--font-weight-semibold);
+                    color: var(--text-primary);
+                    margin-bottom: var(--space-1);
+                }
+
+                .book-info p {
+                    color: var(--text-secondary);
+                    font-size: var(--font-size-sm);
+                    margin-bottom: var(--space-2);
+                }
+
+                .order-ref {
+                    font-size: var(--font-size-xs);
+                    color: var(--text-muted);
+                    background: var(--bg-primary);
+                    padding: var(--space-1) var(--space-2);
+                    border-radius: var(--radius-base);
+                }
+
+                .rating-section {
+                    margin-bottom: var(--space-4);
+                }
+
+                .star-rating {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    margin-top: var(--space-2);
+                }
+
+                .star {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: var(--color-gray-300);
+                    transition: color var(--transition-fast);
+                }
+
+                .star.active {
+                    color: var(--color-accent);
+                }
+
+                .star:hover {
+                    color: var(--color-accent);
+                }
+
+                .rating-text {
+                    margin-left: var(--space-3);
+                    font-weight: var(--font-weight-medium);
+                    color: var(--text-secondary);
+                }
+
+                .form-textarea {
+                    width: 100%;
+                    min-height: 100px;
+                    padding: var(--space-3);
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-lg);
+                    font-family: inherit;
+                    font-size: var(--font-size-sm);
+                    resize: vertical;
+                    transition: border-color var(--transition-base);
+                }
+
+                .form-textarea:focus {
+                    outline: none;
+                    border-color: var(--color-primary);
+                }
+
+                @media (max-width: 768px) {
+                    .book-preview {
+                        flex-direction: column;
+                        align-items: center;
                         text-align: center;
                     }
                 }

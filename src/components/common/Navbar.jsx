@@ -1,7 +1,9 @@
+// src/components/common/Navbar.jsx
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useCart } from '../../hooks/useCart'
+import { useTheme } from '../../context/ThemeContext'
 import {
     BookOpen,
     ShoppingCart,
@@ -13,13 +15,18 @@ import {
     Settings,
     Package,
     Users,
-    BarChart3
+    BarChart3,
+    Sun,
+    Moon,
+    Search
 } from 'lucide-react'
 
 export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
     const { user, logout, isAdmin, isUser } = useAuth()
     const { getCartItemCount } = useCart()
+    const { theme, toggleTheme } = useTheme()
     const location = useLocation()
     const navigate = useNavigate()
 
@@ -37,6 +44,15 @@ export default function Navbar() {
         setIsMobileMenuOpen(false)
     }
 
+    const handleSearch = (e) => {
+        e.preventDefault()
+        if (searchQuery.trim()) {
+            navigate(`/books?search=${encodeURIComponent(searchQuery)}`)
+            setSearchQuery('')
+            closeMobileMenu()
+        }
+    }
+
     const isActivePath = (path) => {
         return location.pathname === path || location.pathname.startsWith(path + '/')
     }
@@ -49,7 +65,17 @@ export default function Navbar() {
                         <BookOpen size={24} style={{ marginRight: '8px' }} />
                         BookStore
                     </Link>
+
+                    {/* Theme toggle for non-authenticated users */}
                     <div className="navbar__nav">
+                        <button
+                            onClick={toggleTheme}
+                            className="theme-toggle"
+                            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                        >
+                            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                        </button>
+
                         <Link
                             to="/auth/login"
                             className={`navbar__link ${isActivePath('/auth/login') ? 'navbar__link--active' : ''}`}
@@ -75,6 +101,22 @@ export default function Navbar() {
                     <BookOpen size={24} style={{ marginRight: '8px' }} />
                     BookStore
                 </Link>
+
+                {/* Search Bar - Only show for users, not admins */}
+                {!isAdmin && (
+                    <form onSubmit={handleSearch} className="navbar__search">
+                        <div className="search-input">
+                            <Search className="search-icon" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Search books..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="search-field"
+                            />
+                        </div>
+                    </form>
+                )}
 
                 {/* Mobile Menu Toggle */}
                 <button
@@ -150,6 +192,14 @@ export default function Navbar() {
                                 Categories
                             </Link>
                             <Link
+                                to="/orders"
+                                className={`navbar__link ${isActivePath('/orders') ? 'navbar__link--active' : ''}`}
+                                onClick={closeMobileMenu}
+                            >
+                                <Package size={18} />
+                                Orders
+                            </Link>
+                            <Link
                                 to="/wishlist"
                                 className={`navbar__link ${isActivePath('/wishlist') ? 'navbar__link--active' : ''}`}
                                 onClick={closeMobileMenu}
@@ -173,10 +223,22 @@ export default function Navbar() {
                         </>
                     )}
 
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        className="theme-toggle navbar__link"
+                        title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                    >
+                        {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+                        <span className="theme-toggle__text">
+                            {theme === 'light' ? 'Dark' : 'Light'}
+                        </span>
+                    </button>
+
                     {/* User Menu */}
                     <div className="navbar__user">
                         <div className="flex flex--gap-2" style={{ alignItems: 'center' }}>
-                            <span className="text-sm text-secondary">
+                            <span className="text-sm text-secondary user-name">
                                 {user.firstname} {user.lastname}
                             </span>
                             {!isAdmin && (
@@ -184,22 +246,305 @@ export default function Navbar() {
                                     to="/profile"
                                     className={`navbar__link ${isActivePath('/profile') ? 'navbar__link--active' : ''}`}
                                     onClick={closeMobileMenu}
+                                    title="Profile"
                                 >
                                     <User size={18} />
+                                    <span className="profile-text">Profile</span>
                                 </Link>
                             )}
                             <button
                                 onClick={handleLogout}
-                                className="navbar__link"
+                                className="navbar__link logout-btn"
                                 style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                                title="Logout"
                             >
                                 <LogOut size={18} />
-                                Logout
+                                <span className="logout-text">Logout</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <style>{`
+                .navbar {
+                    background: var(--bg-primary);
+                    border-bottom: 2px solid var(--color-gray-200);
+                    position: sticky;
+                    top: 0;
+                    z-index: 1000;
+                    transition: all var(--transition-base);
+                }
+
+                .navbar__container {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: var(--space-4) 0;
+                    gap: var(--space-4);
+                }
+
+                .navbar__brand {
+                    display: flex;
+                    align-items: center;
+                    font-size: var(--font-size-xl);
+                    font-weight: var(--font-weight-bold);
+                    color: var(--color-primary);
+                    text-decoration: none;
+                    transition: transform var(--transition-fast);
+                }
+
+                .navbar__brand:hover {
+                    transform: scale(1.05);
+                }
+
+                .navbar__search {
+                    flex: 1;
+                    max-width: 400px;
+                    margin: 0 var(--space-4);
+                }
+
+                .search-input {
+                    position: relative;
+                }
+
+                .search-icon {
+                    position: absolute;
+                    left: var(--space-3);
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: var(--text-muted);
+                    z-index: 1;
+                }
+
+                .search-field {
+                    width: 100%;
+                    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-10);
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-full);
+                    background: var(--bg-secondary);
+                    font-size: var(--font-size-sm);
+                    color: var(--text-primary);
+                    transition: all var(--transition-base);
+                }
+
+                .search-field:focus {
+                    outline: none;
+                    border-color: var(--color-primary);
+                    background: var(--bg-primary);
+                    box-shadow: 0 0 0 3px var(--color-primary-light);
+                }
+
+                .navbar__mobile-toggle {
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    width: 44px;
+                    height: 44px;
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-lg);
+                    background: var(--bg-secondary);
+                    color: var(--text-secondary);
+                    cursor: pointer;
+                    transition: all var(--transition-base);
+                }
+
+                .navbar__mobile-toggle:hover {
+                    border-color: var(--color-primary);
+                    color: var(--color-primary);
+                    background: var(--color-primary-light);
+                }
+
+                .navbar__nav {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-4);
+                }
+
+                .navbar__link {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    padding: var(--space-2) var(--space-3);
+                    color: var(--text-secondary);
+                    text-decoration: none;
+                    border-radius: var(--radius-lg);
+                    font-weight: var(--font-weight-medium);
+                    transition: all var(--transition-base);
+                    position: relative;
+                }
+
+                .navbar__link:hover {
+                    color: var(--color-primary);
+                    background: var(--color-primary-light);
+                    transform: translateY(-1px);
+                }
+
+                .navbar__link--active {
+                    color: var(--color-primary);
+                    background: var(--color-primary-light);
+                    font-weight: var(--font-weight-semibold);
+                }
+
+                .navbar__cart {
+                    position: relative;
+                }
+
+                .navbar__cart-badge {
+                    position: absolute;
+                    top: -8px;
+                    right: -8px;
+                    background: var(--color-secondary);
+                    color: white;
+                    font-size: var(--font-size-xs);
+                    font-weight: var(--font-weight-bold);
+                    min-width: 20px;
+                    height: 20px;
+                    border-radius: var(--radius-full);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: bounce 0.3s ease;
+                }
+
+                .theme-toggle {
+                    background: none;
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-lg);
+                    cursor: pointer;
+                    transition: all var(--transition-base);
+                }
+
+                .theme-toggle:hover {
+                    border-color: var(--color-primary);
+                    background: var(--color-primary-light);
+                }
+
+                .navbar__user {
+                    margin-left: var(--space-2);
+                }
+
+                .user-name {
+                    white-space: nowrap;
+                    max-width: 150px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .logout-btn:hover {
+                    color: var(--color-danger) !important;
+                    background: var(--color-danger-light) !important;
+                }
+
+                /* Mobile Styles */
+                @media (max-width: 1024px) {
+                    .navbar__search {
+                        display: none;
+                    }
+
+                    .navbar__mobile-toggle {
+                        display: flex;
+                    }
+
+                    .navbar__nav {
+                        display: none;
+                        position: absolute;
+                        top: 100%;
+                        left: 0;
+                        right: 0;
+                        background: var(--bg-primary);
+                        border-bottom: 2px solid var(--color-gray-200);
+                        padding: var(--space-4);
+                        flex-direction: column;
+                        align-items: stretch;
+                        gap: var(--space-2);
+                        box-shadow: var(--shadow-lg);
+                    }
+
+                    .navbar__nav--open {
+                        display: flex;
+                        animation: slideDown 0.3s ease;
+                    }
+
+                    .navbar__link {
+                        justify-content: flex-start;
+                        padding: var(--space-3);
+                        border-radius: var(--radius-lg);
+                    }
+
+                    .navbar__user {
+                        margin-left: 0;
+                        padding-top: var(--space-4);
+                        border-top: 1px solid var(--color-gray-200);
+                    }
+
+                    .navbar__user .flex {
+                        flex-direction: column;
+                        align-items: stretch !important;
+                        gap: var(--space-2);
+                    }
+
+                    .user-name {
+                        text-align: center;
+                        padding: var(--space-2);
+                        background: var(--bg-secondary);
+                        border-radius: var(--radius-lg);
+                        max-width: none;
+                    }
+
+                    .theme-toggle__text,
+                    .profile-text,
+                    .logout-text {
+                        display: inline;
+                    }
+                }
+
+                @media (min-width: 1025px) {
+                    .theme-toggle__text,
+                    .profile-text,
+                    .logout-text {
+                        display: none;
+                    }
+                }
+
+                @keyframes slideDown {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                @keyframes bounce {
+                    0%, 20%, 53%, 80%, 100% {
+                        transform: translate3d(0,0,0);
+                    }
+                    40%, 43% {
+                        transform: translate3d(0,-8px,0);
+                    }
+                    70% {
+                        transform: translate3d(0,-4px,0);
+                    }
+                    90% {
+                        transform: translate3d(0,-2px,0);
+                    }
+                }
+
+                @media (max-width: 768px) {
+                    .navbar__container {
+                        padding: var(--space-3) 0;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .navbar__brand span {
+                        display: none;
+                    }
+                }
+            `}</style>
         </nav>
     )
 }
