@@ -214,6 +214,30 @@ const DEMO_BOOKS = [
         image: 'https://imgv2-2-f.scribdassets.com/img/document/558793009/original/02dbbe66ca/1?v=1',
         rating: 4.1,
         reviews: 67
+    },
+    {
+        id: 11,
+        title: "Sapiens",
+        author: "Yuval Noah Harari",
+        category: "History",
+        price: 379,
+        quantity: 3, // Low stock for demo
+        stock: 3,
+        rating: 4.3,
+        reviews: 256,
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop"
+    },
+    {
+        id: 12,
+        title: "The Psychology of Money",
+        author: "Morgan Housel",
+        category: "Finance",
+        price: 329,
+        quantity: 2, // Low stock for demo
+        stock: 2,
+        rating: 4.2,
+        reviews: 187,
+        image: "https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=400&h=600&fit=crop"
     }
 ]
 

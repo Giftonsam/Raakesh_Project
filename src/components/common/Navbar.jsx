@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useCart } from '../../hooks/useCart'
+import { useWishlist } from '../../hooks/useWishlist' // Add this import
 import { useTheme } from '../../context/ThemeContext'
 import {
     BookOpen,
@@ -26,6 +27,7 @@ export default function Navbar() {
     const [searchQuery, setSearchQuery] = useState('')
     const { user, logout, isAdmin, isUser } = useAuth()
     const { getCartItemCount } = useCart()
+    const { getWishlistItemCount } = useWishlist() // Add this hook
     const { theme, toggleTheme } = useTheme()
     const location = useLocation()
     const navigate = useNavigate()
@@ -201,11 +203,16 @@ export default function Navbar() {
                             </Link>
                             <Link
                                 to="/wishlist"
-                                className={`navbar__link ${isActivePath('/wishlist') ? 'navbar__link--active' : ''}`}
+                                className={`navbar__link navbar__wishlist ${isActivePath('/wishlist') ? 'navbar__link--active' : ''}`}
                                 onClick={closeMobileMenu}
                             >
-                                <Heart size={18} />
+                                <Heart size={18} className={isActivePath('/wishlist') ? 'heart-active' : ''} />
                                 Wishlist
+                                {getWishlistItemCount() > 0 && (
+                                    <span className="navbar__wishlist-badge">
+                                        {getWishlistItemCount()}
+                                    </span>
+                                )}
                             </Link>
                             <Link
                                 to="/cart"
@@ -386,11 +393,11 @@ export default function Navbar() {
                     font-weight: var(--font-weight-semibold);
                 }
 
-                .navbar__cart {
+                .navbar__cart, .navbar__wishlist {
                     position: relative;
                 }
 
-                .navbar__cart-badge {
+                .navbar__cart-badge, .navbar__wishlist-badge {
                     position: absolute;
                     top: -8px;
                     right: -8px;
@@ -404,7 +411,28 @@ export default function Navbar() {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    animation: bounce 0.3s ease;
+                    animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                }
+
+                .navbar__wishlist-badge {
+                    background: #e91e63;
+                    animation: pulseHeart 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                }
+
+                /* Heart animation styles */
+                .heart-active {
+                    color: #e91e63 !important;
+                    animation: heartBeat 0.6s ease-in-out;
+                }
+
+                .navbar__wishlist:hover .lucide-heart {
+                    transform: scale(1.1);
+                    transition: transform 0.2s ease;
+                }
+
+                .navbar__wishlist.navbar__link--active .lucide-heart {
+                    animation: heartPulse 2s infinite;
                 }
 
                 .theme-toggle {
@@ -434,6 +462,88 @@ export default function Navbar() {
                 .logout-btn:hover {
                     color: var(--color-danger) !important;
                     background: var(--color-danger-light) !important;
+                }
+
+                /* Enhanced Animations */
+                @keyframes bounceIn {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0.3) translate3d(0,0,0);
+                    }
+                    20% {
+                        transform: scale(1.1);
+                    }
+                    40% {
+                        transform: scale(0.9);
+                    }
+                    60% {
+                        opacity: 1;
+                        transform: scale(1.03);
+                    }
+                    80% {
+                        transform: scale(0.97);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1) translate3d(0,0,0);
+                    }
+                }
+
+                @keyframes pulseHeart {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0.1);
+                        background: #ff6b9d;
+                    }
+                    25% {
+                        opacity: 0.8;
+                        transform: scale(1.2);
+                        background: #e91e63;
+                    }
+                    50% {
+                        opacity: 1;
+                        transform: scale(0.9);
+                        background: #c2185b;
+                    }
+                    75% {
+                        transform: scale(1.05);
+                        background: #e91e63;
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1);
+                        background: #e91e63;
+                    }
+                }
+
+                @keyframes heartBeat {
+                    0% {
+                        transform: scale(1);
+                    }
+                    14% {
+                        transform: scale(1.3);
+                    }
+                    28% {
+                        transform: scale(1);
+                    }
+                    42% {
+                        transform: scale(1.3);
+                    }
+                    70% {
+                        transform: scale(1);
+                    }
+                }
+
+                @keyframes heartPulse {
+                    0% {
+                        transform: scale(1);
+                    }
+                    50% {
+                        transform: scale(1.1);
+                    }
+                    100% {
+                        transform: scale(1);
+                    }
                 }
 
                 /* Mobile Styles */
@@ -515,21 +625,6 @@ export default function Navbar() {
                     to {
                         opacity: 1;
                         transform: translateY(0);
-                    }
-                }
-
-                @keyframes bounce {
-                    0%, 20%, 53%, 80%, 100% {
-                        transform: translate3d(0,0,0);
-                    }
-                    40%, 43% {
-                        transform: translate3d(0,-8px,0);
-                    }
-                    70% {
-                        transform: translate3d(0,-4px,0);
-                    }
-                    90% {
-                        transform: translate3d(0,-2px,0);
                     }
                 }
 

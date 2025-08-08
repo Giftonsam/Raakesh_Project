@@ -965,3 +965,84 @@
         transform: translateX(0);
     }
 }
+
+
+/* Wishlist badge styling */
+.wishlist-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 50%;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Wishlist badge bump animation */
+@keyframes wishlist-bump {
+    0% {
+        transform: scale(1);
+    }
+
+    10% {
+        transform: scale(1.2);
+    }
+
+    30% {
+        transform: scale(0.95);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.wishlist-badge-bump {
+    animation: wishlist-bump 300ms ease-out;
+}
+
+/* Icon wrapper to position badge correctly */
+.icon-wrapper {
+    position: relative;
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+/* Wishlist button bump effect when clicked */
+@keyframes wishlist-btn-bump {
+    0% {
+        transform: scale(1);
+    }
+
+    10% {
+        transform: scale(1.15);
+    }
+
+    30% {
+        transform: scale(0.9);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.wishlist-btn-bump {
+    animation: wishlist-btn-bump 300ms ease-out;
+}
