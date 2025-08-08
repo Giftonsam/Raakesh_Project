@@ -460,7 +460,7 @@ export default function ShoppingCart() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
                 .cart-layout {
                     display: grid;
                     grid-template-columns: 1fr 400px;

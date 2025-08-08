@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useCart } from '../../hooks/useCart'
-import { useWishlist } from '../../hooks/useWishlist' // Add this import
+import { useWishlist } from '../../context/WishlistContext' // Fixed import path
 import { useTheme } from '../../context/ThemeContext'
 import {
     BookOpen,
@@ -27,7 +27,7 @@ export default function Navbar() {
     const [searchQuery, setSearchQuery] = useState('')
     const { user, logout, isAdmin, isUser } = useAuth()
     const { getCartItemCount } = useCart()
-    const { getWishlistItemCount } = useWishlist() // Add this hook
+    const { getWishlistCount } = useWishlist() // Fixed function name
     const { theme, toggleTheme } = useTheme()
     const location = useLocation()
     const navigate = useNavigate()
@@ -58,6 +58,10 @@ export default function Navbar() {
     const isActivePath = (path) => {
         return location.pathname === path || location.pathname.startsWith(path + '/')
     }
+
+    // Get current counts
+    const wishlistCount = getWishlistCount()
+    const cartCount = getCartItemCount()
 
     if (!user) {
         return (
@@ -208,9 +212,9 @@ export default function Navbar() {
                             >
                                 <Heart size={18} className={isActivePath('/wishlist') ? 'heart-active' : ''} />
                                 Wishlist
-                                {getWishlistItemCount() > 0 && (
+                                {wishlistCount > 0 && (
                                     <span className="navbar__wishlist-badge">
-                                        {getWishlistItemCount()}
+                                        {wishlistCount}
                                     </span>
                                 )}
                             </Link>
@@ -221,9 +225,9 @@ export default function Navbar() {
                             >
                                 <ShoppingCart size={18} />
                                 Cart
-                                {getCartItemCount() > 0 && (
+                                {cartCount > 0 && (
                                     <span className="navbar__cart-badge">
-                                        {getCartItemCount()}
+                                        {cartCount}
                                     </span>
                                 )}
                             </Link>
@@ -274,6 +278,41 @@ export default function Navbar() {
             </div>
 
             <style>{`
+                :root {
+                    --bg-primary: #ffffff;
+                    --bg-secondary: #f8fafc;
+                    --text-primary: #1f2937;
+                    --text-secondary: #6b7280;
+                    --text-muted: #9ca3af;
+                    --color-primary: #3b82f6;
+                    --color-primary-light: #dbeafe;
+                    --color-secondary: #f59e0b;
+                    --color-danger: #ef4444;
+                    --color-danger-light: #fef2f2;
+                    --color-gray-200: #e5e7eb;
+                    --space-2: 0.5rem;
+                    --space-3: 0.75rem;
+                    --space-4: 1rem;
+                    --space-10: 2.5rem;
+                    --font-size-xs: 0.75rem;
+                    --font-size-sm: 0.875rem;
+                    --font-size-xl: 1.25rem;
+                    --font-weight-medium: 500;
+                    --font-weight-semibold: 600;
+                    --font-weight-bold: 700;
+                    --radius-lg: 0.5rem;
+                    --radius-full: 9999px;
+                    --transition-base: all 0.15s ease-in-out;
+                    --transition-fast: all 0.1s ease-in-out;
+                    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                }
+
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 0 1rem;
+                }
+
                 .navbar {
                     background: var(--bg-primary);
                     border-bottom: 2px solid var(--color-gray-200);
@@ -462,6 +501,48 @@ export default function Navbar() {
                 .logout-btn:hover {
                     color: var(--color-danger) !important;
                     background: var(--color-danger-light) !important;
+                }
+
+                .btn {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 0.5rem 1rem;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    border-radius: 0.375rem;
+                    text-decoration: none;
+                    transition: all 0.15s ease-in-out;
+                    border: 1px solid transparent;
+                }
+
+                .btn--primary {
+                    background-color: var(--color-primary);
+                    color: white;
+                }
+
+                .btn--primary:hover {
+                    background-color: #2563eb;
+                }
+
+                .btn--sm {
+                    padding: 0.375rem 0.75rem;
+                    font-size: 0.75rem;
+                }
+
+                .flex {
+                    display: flex;
+                }
+
+                .flex--gap-2 {
+                    gap: 0.5rem;
+                }
+
+                .text-sm {
+                    font-size: 0.875rem;
+                }
+
+                .text-secondary {
+                    color: var(--text-secondary);
                 }
 
                 /* Enhanced Animations */

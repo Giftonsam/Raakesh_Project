@@ -36,7 +36,7 @@ export default function WishlistButton({
             />
             {isLoading && <span className="wishlist-loading">Loading...</span>}
 
-            <style jsx>{`
+            <style>{`
                 .wishlist-button {
                     display: flex;
                     align-items: center;

@@ -396,7 +396,7 @@ export default function Feedback() {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .feedback-layout {
                     display: grid;
                     grid-template-columns: 2fr 1fr;

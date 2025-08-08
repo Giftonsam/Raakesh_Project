@@ -15,167 +15,141 @@ export const WishlistProvider = ({ children }) => {
     const [wishlistItems, setWishlistItems] = useState([])
     const [isLoading, setIsLoading] = useState(false)
 
-    // Sample books data (same as other components)
+    // Consistent books data matching BookContext
     const sampleBooks = [
         {
             id: 1,
-            title: "The Great Gatsby",
-            author: "F. Scott Fitzgerald",
-            category: "Fiction",
-            price: 299,
-            stock: 25,
-            rating: 4.2,
-            description: "A classic American novel set in the Jazz Age, exploring themes of wealth, love, and the American Dream through the eyes of narrator Nick Carraway.",
-            image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop"
+            title: 'The Go Programming Language',
+            author: 'Alan A. A. Donovan and Brian W. Kernighan',
+            category: 'Programming',
+            price: 400,
+            stock: 8,
+            rating: 4.5,
+            description: 'The authoritative resource to writing clear and idiomatic Go to solve real-world problems.',
+            image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 2,
-            title: "To Kill a Mockingbird",
-            author: "Harper Lee",
-            category: "Fiction",
-            price: 349,
-            stock: 18,
-            rating: 4.5,
-            description: "A gripping tale of racial injustice and childhood innocence in the American South, told through the eyes of young Scout Finch.",
-            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop"
+            title: 'C++ Primer',
+            author: 'Stanley Lippman, Josée Lajoie, Barbara Moo',
+            category: 'Programming',
+            price: 976,
+            stock: 13,
+            rating: 4.7,
+            description: 'Bestselling programming tutorial and reference guide to C++.',
+            image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 3,
-            title: "1984",
-            author: "George Orwell",
-            category: "Science Fiction",
-            price: 279,
-            stock: 32,
-            rating: 4.4,
-            discountedPrice: 199,
-            description: "A dystopian novel about totalitarianism and surveillance in a future society where Big Brother watches everyone.",
-            image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop"
+            title: 'The Rust Programming Language',
+            author: 'Steve Klabnik and Carol Nichols',
+            category: 'Programming',
+            price: 560,
+            stock: 12,
+            rating: 4.8,
+            description: 'The official book on the Rust programming language, written by the Rust development team.',
+            image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 4,
-            title: "Pride and Prejudice",
-            author: "Jane Austen",
-            category: "Romance",
-            price: 259,
-            stock: 22,
+            title: 'Head First Java',
+            author: 'Kathy Sierra, Bert Bates, Trisha Gee',
+            category: 'Programming',
+            price: 754,
+            stock: 23,
             rating: 4.3,
-            description: "A witty and romantic novel about love, class, and social expectations in Regency England, following Elizabeth Bennet and Mr. Darcy.",
-            image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop"
+            description: 'A brain-friendly guide to Java programming.',
+            image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 5,
-            title: "The Catcher in the Rye",
-            author: "J.D. Salinger",
-            category: "Fiction",
-            price: 319,
-            stock: 15,
-            rating: 3.8,
-            description: "A coming-of-age story following teenager Holden Caulfield as he navigates the complexities of adulthood in New York City.",
-            image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop"
+            title: 'Fluent Python',
+            author: 'Luciano Ramalho',
+            category: 'Programming',
+            price: 1014,
+            stock: 5,
+            rating: 4.6,
+            description: 'Clear, concise, and effective programming in Python.',
+            image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 6,
-            title: "Harry Potter and the Philosopher's Stone",
-            author: "J.K. Rowling",
-            category: "Fantasy",
-            price: 399,
-            stock: 45,
-            rating: 4.7,
-            discountedPrice: 299,
-            description: "The first book in the magical Harry Potter series about a young wizard's adventures at Hogwarts School of Witchcraft and Wizardry.",
-            image: "https://images.unsplash.com/photo-1621351183012-e2f9972dd9bf?w=400&h=600&fit=crop"
+            title: 'React: The Complete Guide',
+            author: 'Maximilian Schwarzmüller',
+            category: 'Web Development',
+            price: 650,
+            stock: 18,
+            rating: 4.4,
+            description: 'Your journey to master React with hooks, context, and modern patterns.',
+            image: 'https://images.unsplash.com/photo-1621839673705-6617adf9e890?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 7,
-            title: "The Lord of the Rings",
-            author: "J.R.R. Tolkien",
-            category: "Fantasy",
-            price: 599,
-            stock: 28,
-            rating: 4.6,
-            description: "An epic fantasy adventure following hobbits Frodo and Sam on their quest to destroy the One Ring and save Middle-earth.",
-            image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop"
+            title: 'Clean Code: A Handbook of Agile Software Craftsmanship',
+            author: 'Robert C Martin',
+            category: 'Software Engineering',
+            price: 850,
+            stock: 15,
+            rating: 4.9,
+            description: 'A handbook of agile software craftsmanship.',
+            image: 'https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 8,
-            title: "Dune",
-            author: "Frank Herbert",
-            category: "Science Fiction",
-            price: 449,
-            stock: 20,
-            rating: 4.1,
-            discountedPrice: 349,
-            description: "A science fiction epic set on the desert planet Arrakis, featuring political intrigue, mysticism, and the spice melange.",
-            image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400&h=600&fit=crop"
+            title: 'Domain-Driven Design',
+            author: 'Eric Evans',
+            category: 'Software Engineering',
+            price: 720,
+            stock: 28,
+            rating: 4.5,
+            description: 'Tackling complexity in the heart of software.',
+            image: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 9,
-            title: "The Alchemist",
-            author: "Paulo Coelho",
-            category: "Philosophy",
-            price: 229,
-            stock: 35,
-            rating: 4.0,
-            description: "A philosophical novel about a shepherd's journey to find his personal legend and the treasure that awaits him.",
-            image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop"
+            title: 'A Programmers Guide to Computer Science',
+            author: 'William Springer',
+            category: 'Computer Science',
+            price: 550,
+            stock: 20,
+            rating: 4.2,
+            description: 'A summary of computer science fundamentals.',
+            image: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 10,
-            title: "Steve Jobs",
-            author: "Walter Isaacson",
-            category: "Biography",
-            price: 499,
-            stock: 12,
-            rating: 4.4,
-            description: "The definitive biography of Apple co-founder Steve Jobs, based on exclusive interviews and unprecedented access.",
-            image: "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=400&h=600&fit=crop"
+            title: 'The Soul of a New Machine',
+            author: 'Tracy Kidder',
+            category: 'Technology',
+            price: 480,
+            stock: 30,
+            rating: 4.1,
+            description: 'The story of the creation of a new computer.',
+            image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 11,
-            title: "Sapiens",
-            author: "Yuval Noah Harari",
-            category: "History",
-            price: 379,
-            stock: 30,
+            title: 'Node.js Design Patterns',
+            author: 'Mario Casciaro',
+            category: 'Web Development',
+            price: 680,
+            stock: 14,
             rating: 4.3,
-            description: "A fascinating exploration of human history and our species' journey from hunter-gatherers to global dominance.",
-            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop"
+            description: 'Design and implement production-grade Node.js applications.',
+            image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop&auto=format'
         },
         {
             id: 12,
-            title: "The Psychology of Money",
-            author: "Morgan Housel",
-            category: "Finance",
-            price: 329,
+            title: 'Learning JavaScript Design Patterns',
+            author: 'Addy Osmani',
+            category: 'Web Development',
+            price: 420,
             stock: 25,
             rating: 4.2,
-            discountedPrice: 249,
-            description: "Timeless lessons on wealth, greed, and happiness from the perspective of behavioral psychology and personal finance.",
-            image: "https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=400&h=600&fit=crop"
+            description: 'Modern JavaScript design patterns for scalable applications.',
+            image: 'https://images.unsplash.com/photo-1621351183012-e2f9972dd9bf?w=400&h=600&fit=crop&auto=format'
         }
     ]
-
-    // Load wishlist from localStorage on mount
-    useEffect(() => {
-        const savedWishlist = localStorage.getItem('bookstore-wishlist')
-        if (savedWishlist) {
-            try {
-                const wishlistIds = JSON.parse(savedWishlist)
-                const wishlistBooks = wishlistIds.map(id => 
-                    sampleBooks.find(book => book.id === id)
-                ).filter(Boolean)
-                setWishlistItems(wishlistBooks)
-            } catch (error) {
-                console.error('Error loading wishlist:', error)
-            }
-        }
-    }, [])
-
-    // Save wishlist to localStorage whenever it changes
-    useEffect(() => {
-        const wishlistIds = wishlistItems.map(item => item.id)
-        localStorage.setItem('bookstore-wishlist', JSON.stringify(wishlistIds))
-    }, [wishlistItems])
 
     // Check if a book is in wishlist
     const isInWishlist = (bookId) => {
@@ -188,12 +162,12 @@ export const WishlistProvider = ({ children }) => {
         try {
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 300))
-            
+
             const book = sampleBooks.find(b => b.id === bookId)
             if (book && !isInWishlist(bookId)) {
                 setWishlistItems(prev => [...prev, book])
-                
-                // Show success notification
+
+                // Show enhanced notification
                 showNotification(`"${book.title}" added to wishlist!`, 'success')
                 return true
             }
@@ -212,10 +186,10 @@ export const WishlistProvider = ({ children }) => {
         try {
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 300))
-            
+
             const book = wishlistItems.find(item => item.id === bookId)
             setWishlistItems(prev => prev.filter(item => item.id !== bookId))
-            
+
             // Show success notification
             if (book) {
                 showNotification(`"${book.title}" removed from wishlist!`, 'success')
@@ -262,43 +236,98 @@ export const WishlistProvider = ({ children }) => {
     // Get wishlist item IDs
     const getWishlistIds = () => wishlistItems.map(item => item.id)
 
-    // Show notification helper
+    // Enhanced notification helper with modern styling
     const showNotification = (message, type = 'success') => {
         const notification = document.createElement('div')
-        notification.textContent = message
+        notification.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-icon">
+                    ${type === 'success' ?
+                '<svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>' :
+                '<svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>'
+            }
+                </div>
+                <div class="notification-message">${message}</div>
+            </div>
+        `
+
         notification.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
-            background: ${type === 'success' ? '#10b981' : '#ef4444'};
+            background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
             color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 16px 20px;
+            border-radius: 12px;
             z-index: 10000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
             font-size: 14px;
             font-weight: 500;
-            max-width: 300px;
-            animation: slideIn 0.3s ease;
+            max-width: 350px;
+            transform: translateX(400px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            animation: slideInBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
         `
-        
-        // Add slide-in animation
+
+        // Add styles for notification content
         const style = document.createElement('style')
         style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .notification-icon {
+                flex-shrink: 0;
+                width: 20px;
+                height: 20px;
+            }
+            
+            .notification-message {
+                flex: 1;
+                line-height: 1.4;
+            }
+            
+            @keyframes slideInBounce {
+                0% {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                60% {
+                    transform: translateX(-10px);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
             }
         `
+
         if (!document.head.querySelector('style[data-notification]')) {
             style.setAttribute('data-notification', 'true')
             document.head.appendChild(style)
         }
-        
+
         document.body.appendChild(notification)
+
+        // Trigger animation
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)'
+        }, 50)
+
+        // Remove notification after delay
         setTimeout(() => {
             if (document.body.contains(notification)) {
-                document.body.removeChild(notification)
+                notification.style.transform = 'translateX(400px)'
+                notification.style.opacity = '0'
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification)
+                    }
+                }, 300)
             }
         }, 3000)
     }

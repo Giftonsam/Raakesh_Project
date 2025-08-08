@@ -1,428 +1,594 @@
 // src/components/user/Wishlist.jsx
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, ShoppingCart, Trash2, Eye, Star } from 'lucide-react'
 import { useWishlist } from '../../context/WishlistContext'
-import WishlistButton from '../common/WishlistButton'
+import { useCart } from '../../hooks/useCart'
+import { useAuth } from '../../hooks/useAuth'
+import { Heart, ShoppingCart, Trash2, Eye, Package } from 'lucide-react'
+import LoadingSpinner from '../common/LoadingSpinner'
 
-export default function Wishlist() {
-  const { wishlistItems, isLoading, clearWishlist } = useWishlist()
+const Wishlist = () => {
+  const { user } = useAuth()
+  const { wishlistItems, removeFromWishlist, clearWishlist, isLoading: wishlistLoading } = useWishlist()
+  const { addToCart, loading: cartLoading } = useCart()
+  const [removingItems, setRemovingItems] = useState(new Set())
+  const [addingToCart, setAddingToCart] = useState(new Set())
 
-  const handleAddToCart = async (bookId) => {
+  const handleRemoveFromWishlist = async (bookId) => {
+    setRemovingItems(prev => new Set(prev).add(bookId))
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 300))
-
-      const book = wishlistItems.find(b => b.id === bookId)
-
-      // Show success notification
-      const notification = document.createElement('div')
-      notification.textContent = `"${book?.title}" added to cart!`
-      notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: var(--color-primary);
-                color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
-                z-index: 10000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                font-size: 14px;
-                font-weight: 500;
-                max-width: 300px;
-            `
-      document.body.appendChild(notification)
-      setTimeout(() => {
-        if (document.body.contains(notification)) {
-          document.body.removeChild(notification)
-        }
-      }, 3000)
-
+      await removeFromWishlist(bookId)
     } catch (error) {
-      console.error('Error adding to cart:', error)
+      console.error('Failed to remove from wishlist:', error)
+    } finally {
+      setRemovingItems(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(bookId)
+        return newSet
+      })
+    }
+  }
+
+  const handleAddToCart = async (book) => {
+    setAddingToCart(prev => new Set(prev).add(book.id))
+    try {
+      await addToCart(book, 1)
+    } catch (error) {
+      console.error('Failed to add to cart:', error)
+    } finally {
+      setAddingToCart(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(book.id)
+        return newSet
+      })
     }
   }
 
   const handleClearWishlist = async () => {
     if (window.confirm('Are you sure you want to clear your entire wishlist?')) {
-      await clearWishlist()
+      try {
+        await clearWishlist()
+      } catch (error) {
+        console.error('Failed to clear wishlist:', error)
+      }
     }
   }
 
-  if (isLoading && wishlistItems.length === 0) {
-    return (
-      <div className="page">
-        <div className="container">
-          <div className="loading-container">
-            <div className="spinner spinner--lg"></div>
-            <p>Loading your wishlist...</p>
-          </div>
-        </div>
-      </div>
-    )
+  const handleAddAllToCart = async () => {
+    const promises = wishlistItems.map(item => addToCart(item, 1))
+    try {
+      await Promise.all(promises)
+    } catch (error) {
+      console.error('Some items failed to add to cart:', error)
+    }
   }
 
-  if (wishlistItems.length === 0) {
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price)
+  }
+
+  if (wishlistLoading && wishlistItems.length === 0) {
     return (
-      <div className="page">
+      <div className="wishlist-page">
         <div className="container">
-          <div className="page__header">
-            <h1 className="page__title">My Wishlist</h1>
-            <p className="page__subtitle">Your favorite books saved for later</p>
-          </div>
-
-          <div className="empty-wishlist">
-            <div className="empty-animation">
-              <Heart size={80} />
-            </div>
-            <h2>Your wishlist is empty</h2>
-            <p>Start adding books you love to keep track of them!</p>
-            <div className="empty-actions">
-              <Link to="/books" className="btn btn--primary btn--lg">
-                Browse Books
-              </Link>
-            </div>
-          </div>
+          <LoadingSpinner />
         </div>
-
-        <style>{`
-                    .loading-container {
-                        text-align: center;
-                        padding: var(--space-16);
-                        color: var(--text-muted);
-                    }
-
-                    .empty-wishlist {
-                        text-align: center;
-                        padding: var(--space-16);
-                        color: var(--text-muted);
-                    }
-
-                    .empty-animation {
-                        opacity: 0.3;
-                        margin-bottom: var(--space-6);
-                        animation: pulse 2s ease-in-out infinite;
-                        color: #e91e63;
-                    }
-
-                    .empty-wishlist h2 {
-                        font-size: var(--font-size-2xl);
-                        margin: var(--space-6) 0 var(--space-4);
-                        color: var(--text-secondary);
-                    }
-
-                    .empty-actions {
-                        margin-top: var(--space-8);
-                    }
-
-                    @keyframes pulse {
-                        0%, 100% { transform: scale(1); opacity: 0.3; }
-                        50% { transform: scale(1.05); opacity: 0.5; }
-                    }
-                `}</style>
       </div>
     )
   }
 
   return (
-    <div className="page">
-      <div className="container">
-        <div className="page__header">
-          <h1 className="page__title">My Wishlist</h1>
-          <p className="page__subtitle">{wishlistItems.length} books in your wishlist</p>
-        </div>
-
-        {/* Wishlist Actions */}
-        <div className="wishlist-actions">
-          <div className="wishlist-info">
-            <p>You have {wishlistItems.length} book{wishlistItems.length !== 1 ? 's' : ''} in your wishlist</p>
-          </div>
-          <div className="action-buttons">
-            {wishlistItems.length > 0 && (
-              <button
-                onClick={handleClearWishlist}
-                className="btn btn--outline btn--sm"
-                disabled={isLoading}
-              >
-                <Trash2 size={16} />
-                Clear All
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="wishlist-grid">
-          {wishlistItems.map(book => (
-            <div key={book.id} className="wishlist-card">
-              <div className="book-image">
-                <img
-                  src={book.image}
-                  alt={book.title}
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/200x300/3b82f6/ffffff?text=Book'
-                  }}
-                />
-
-                {/* Wishlist Button */}
-                <WishlistButton
-                  bookId={book.id}
-                  className="card-style"
-                  size={16}
-                />
+    <>
+      <div className="wishlist-page">
+        <div className="container">
+          {/* Header */}
+          <div className="wishlist-header">
+            <div className="wishlist-header__content">
+              <div className="wishlist-header__info">
+                <Heart className="wishlist-header__icon" size={32} />
+                <div>
+                  <h1 className="wishlist-header__title">My Wishlist</h1>
+                  <p className="wishlist-header__subtitle">
+                    {wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'} saved for later
+                  </p>
+                </div>
               </div>
 
-              <div className="book-content">
-                <div className="book-info">
-                  <h3 className="book-title">
-                    <Link to={`/books/${book.id}`}>
-                      {book.title}
-                    </Link>
-                  </h3>
-                  <p className="book-author">by {book.author}</p>
-
-                  {book.rating && (
-                    <div className="book-rating">
-                      <div className="stars">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={14}
-                            className={i < Math.floor(book.rating) ? 'star-filled' : 'star-empty'}
-                          />
-                        ))}
-                      </div>
-                      <span className="rating-text">({book.rating})</span>
-                    </div>
-                  )}
-
-                  <div className="book-price">
-                    {book.discountedPrice && book.discountedPrice < book.price ? (
-                      <>
-                        <span className="price-current">₹{book.discountedPrice}</span>
-                        <span className="price-original">₹{book.price}</span>
-                        <span className="price-discount">
-                          {Math.round(((book.price - book.discountedPrice) / book.price) * 100)}% OFF
-                        </span>
-                      </>
-                    ) : (
-                      <span className="price-current">₹{book.price}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="book-actions">
+              {wishlistItems.length > 0 && (
+                <div className="wishlist-header__actions">
                   <button
-                    onClick={() => handleAddToCart(book.id)}
-                    className="btn btn--primary btn--sm"
-                    disabled={book.stock === 0}
+                    onClick={handleAddAllToCart}
+                    disabled={cartLoading}
+                    className="btn btn--primary"
                   >
-                    <ShoppingCart size={16} />
-                    {book.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                    <ShoppingCart size={18} />
+                    Add All to Cart
                   </button>
-
-                  <Link
-                    to={`/books/${book.id}`}
-                    className="btn btn--outline btn--sm"
+                  <button
+                    onClick={handleClearWishlist}
+                    disabled={wishlistLoading}
+                    className="btn btn--danger btn--outline"
                   >
-                    <Eye size={16} />
-                    View Details
-                  </Link>
+                    <Trash2 size={18} />
+                    Clear All
+                  </button>
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Wishlist Content */}
+          {wishlistItems.length === 0 ? (
+            <div className="wishlist-empty">
+              <div className="empty-state">
+                <Heart className="empty-state__icon" size={64} />
+                <h2 className="empty-state__title">Your wishlist is empty</h2>
+                <p className="empty-state__description">
+                  Save books you're interested in to your wishlist and come back to them later.
+                </p>
+                <Link to="/books" className="btn btn--primary btn--lg">
+                  <Package size={20} />
+                  Browse Books
+                </Link>
               </div>
             </div>
-          ))}
+          ) : (
+            <div className="wishlist-grid">
+              {wishlistItems.map((item) => (
+                <div key={item.id} className="wishlist-item">
+                  <div className="wishlist-item__content">
+                    {/* Image */}
+                    <div className="wishlist-item__image">
+                      <Link to={`/books/${item.id}`}>
+                        <img
+                          src={item.image || '/placeholder-book.jpg'}
+                          alt={item.title}
+                          loading="lazy"
+                        />
+                      </Link>
+                    </div>
+
+                    {/* Details */}
+                    <div className="wishlist-item__details">
+                      <div className="wishlist-item__header">
+                        <Link
+                          to={`/books/${item.id}`}
+                          className="wishlist-item__title"
+                        >
+                          {item.title}
+                        </Link>
+                        <p className="wishlist-item__author">by {item.author}</p>
+                        <div className="wishlist-item__meta">
+                          <span className="wishlist-item__category">{item.category}</span>
+                          {/* Removed the addedAt date since it's not available in the context */}
+                        </div>
+                      </div>
+
+                      <div className="wishlist-item__price">
+                        <span className="price">{formatPrice(item.price)}</span>
+                      </div>
+
+                      <div className="wishlist-item__actions">
+                        <button
+                          onClick={() => handleAddToCart(item)}
+                          disabled={addingToCart.has(item.id)}
+                          className="btn btn--primary btn--sm"
+                        >
+                          <ShoppingCart size={16} />
+                          {addingToCart.has(item.id) ? 'Adding...' : 'Add to Cart'}
+                        </button>
+
+                        <Link
+                          to={`/books/${item.id}`}
+                          className="btn btn--secondary btn--sm"
+                        >
+                          <Eye size={16} />
+                          View
+                        </Link>
+
+                        <button
+                          onClick={() => handleRemoveFromWishlist(item.id)}
+                          disabled={removingItems.has(item.id)}
+                          className="btn btn--danger btn--outline btn--sm"
+                          title="Remove from wishlist"
+                        >
+                          <Trash2 size={16} />
+                          {removingItems.has(item.id) ? 'Removing...' : 'Remove'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       <style>{`
-                .wishlist-actions {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: var(--space-6);
-                    padding: var(--space-4);
-                    background: var(--bg-secondary);
-                    border-radius: var(--radius-lg);
-                    flex-wrap: wrap;
-                    gap: var(--space-4);
-                }
+        :root {
+          --space-1: 0.25rem;
+          --space-2: 0.5rem;
+          --space-3: 0.75rem;
+          --space-4: 1rem;
+          --space-6: 1.5rem;
+          --space-8: 2rem;
+          --font-size-xs: 0.75rem;
+          --font-size-sm: 0.875rem;
+          --font-size-lg: 1.125rem;
+          --font-size-xl: 1.25rem;
+          --font-size-2xl: 1.5rem;
+          --font-size-3xl: 1.875rem;
+          --font-weight-medium: 500;
+          --font-weight-semibold: 600;
+          --font-weight-bold: 700;
+          --radius-sm: 0.25rem;
+          --radius-md: 0.375rem;
+          --radius-lg: 0.5rem;
+          --radius-xl: 0.75rem;
+          --radius-full: 9999px;
+          --bg-primary: #ffffff;
+          --bg-secondary: #f8fafc;
+          --text-primary: #1f2937;
+          --text-secondary: #6b7280;
+          --text-muted: #9ca3af;
+          --color-primary: #3b82f6;
+          --color-primary-light: #dbeafe;
+          --color-gray-200: #e5e7eb;
+          --color-gray-400: #9ca3af;
+        }
 
-                .wishlist-info p {
-                    margin: 0;
-                    color: var(--text-secondary);
-                    font-size: var(--font-size-sm);
-                }
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 1rem;
+        }
 
-                .action-buttons {
-                    display: flex;
-                    gap: var(--space-2);
-                }
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          font-size: 1rem;
+          font-weight: 500;
+          border: 1px solid transparent;
+          border-radius: 0.375rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          background: none;
+        }
 
-                .wishlist-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-                    gap: var(--space-6);
-                }
+        .btn--primary {
+          background-color: #3b82f6;
+          color: white;
+          border-color: #3b82f6;
+        }
 
-                .wishlist-card {
-                    background: var(--bg-primary);
-                    border: 2px solid var(--color-gray-200);
-                    border-radius: var(--radius-xl);
-                    overflow: hidden;
-                    transition: all var(--transition-base);
-                    display: flex;
-                    height: 200px;
-                }
+        .btn--primary:hover:not(:disabled) {
+          background-color: #2563eb;
+          border-color: #2563eb;
+        }
 
-                .wishlist-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: var(--shadow-xl);
-                    border-color: var(--color-primary);
-                }
+        .btn--secondary {
+          background-color: #6b7280;
+          color: white;
+          border-color: #6b7280;
+        }
 
-                .book-image {
-                    position: relative;
-                    width: 140px;
-                    flex-shrink: 0;
-                    background: var(--bg-secondary);
-                }
+        .btn--secondary:hover:not(:disabled) {
+          background-color: #4b5563;
+          border-color: #4b5563;
+        }
 
-                .book-image img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                }
+        .btn--danger {
+          background-color: #ef4444;
+          color: white;
+          border-color: #ef4444;
+        }
 
-                .book-content {
-                    padding: var(--space-4);
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                    flex: 1;
-                }
+        .btn--danger:hover:not(:disabled) {
+          background-color: #dc2626;
+          border-color: #dc2626;
+        }
 
-                .book-info {
-                    flex: 1;
-                }
+        .btn--outline {
+          background-color: transparent;
+        }
 
-                .book-title {
-                    margin-bottom: var(--space-2);
-                }
+        .btn--outline.btn--danger {
+          color: #ef4444;
+          border-color: #ef4444;
+        }
 
-                .book-title a {
-                    font-size: var(--font-size-base);
-                    font-weight: var(--font-weight-semibold);
-                    color: var(--text-primary);
-                    text-decoration: none;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    transition: color var(--transition-fast);
-                }
+        .btn--lg {
+          padding: 1rem 2rem;
+          font-size: 1.125rem;
+        }
 
-                .book-title a:hover {
-                    color: var(--color-primary);
-                }
+        .wishlist-page {
+          min-height: calc(100vh - 200px);
+          padding: var(--space-6) 0;
+          background: var(--bg-secondary);
+        }
 
-                .book-author {
-                    color: var(--text-secondary);
-                    font-size: var(--font-size-sm);
-                    margin-bottom: var(--space-3);
-                }
+        .wishlist-header {
+          margin-bottom: var(--space-8);
+          padding: var(--space-6);
+          background: var(--bg-primary);
+          border-radius: var(--radius-xl);
+          border: 1px solid var(--color-gray-200);
+        }
 
-                .book-rating {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-2);
-                    margin-bottom: var(--space-3);
-                }
+        .wishlist-header__content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: var(--space-4);
+        }
 
-                .stars {
-                    display: flex;
-                    gap: var(--space-1);
-                }
+        .wishlist-header__info {
+          display: flex;
+          align-items: center;
+          gap: var(--space-4);
+        }
 
-                .star-filled {
-                    color: #fbbf24;
-                    fill: currentColor;
-                }
+        .wishlist-header__icon {
+          color: #e91e63;
+          flex-shrink: 0;
+        }
 
-                .star-empty {
-                    color: var(--color-gray-300);
-                }
+        .wishlist-header__title {
+          font-size: var(--font-size-3xl);
+          font-weight: var(--font-weight-bold);
+          color: var(--text-primary);
+          margin: 0;
+          line-height: 1.2;
+        }
 
-                .rating-text {
-                    font-size: var(--font-size-sm);
-                    color: var(--text-muted);
-                }
+        .wishlist-header__subtitle {
+          font-size: var(--font-size-lg);
+          color: var(--text-secondary);
+          margin: var(--space-1) 0 0;
+        }
 
-                .book-price {
-                    margin-bottom: var(--space-4);
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-2);
-                    flex-wrap: wrap;
-                }
+        .wishlist-header__actions {
+          display: flex;
+          gap: var(--space-3);
+          align-items: center;
+        }
 
-                .price-current {
-                    font-size: var(--font-size-lg);
-                    font-weight: var(--font-weight-bold);
-                    color: var(--color-secondary);
-                }
+        .wishlist-empty {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 400px;
+        }
 
-                .price-original {
-                    font-size: var(--font-size-sm);
-                    color: var(--text-muted);
-                    text-decoration: line-through;
-                }
+        .empty-state {
+          text-align: center;
+          max-width: 400px;
+        }
 
-                .price-discount {
-                    background: var(--color-secondary);
-                    color: white;
-                    font-size: var(--font-size-xs);
-                    font-weight: var(--font-weight-semibold);
-                    padding: var(--space-1) var(--space-2);
-                    border-radius: var(--radius-base);
-                }
+        .empty-state__icon {
+          color: var(--color-gray-400);
+          margin-bottom: var(--space-4);
+        }
 
-                .book-actions {
-                    display: flex;
-                    flex-direction: column;
-                    gap: var(--space-2);
-                }
+        .empty-state__title {
+          font-size: var(--font-size-2xl);
+          font-weight: var(--font-weight-semibold);
+          color: var(--text-primary);
+          margin: 0 0 var(--space-2);
+        }
 
-                @media (max-width: 768px) {
-                    .wishlist-grid {
-                        grid-template-columns: 1fr;
-                    }
+        .empty-state__description {
+          font-size: var(--font-size-lg);
+          color: var(--text-secondary);
+          margin: 0 0 var(--space-6);
+          line-height: 1.6;
+        }
 
-                    .wishlist-card {
-                        height: auto;
-                        flex-direction: column;
-                    }
+        .wishlist-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: var(--space-6);
+        }
 
-                    .book-image {
-                        width: 100%;
-                        height: 200px;
-                    }
+        .wishlist-item {
+          background: var(--bg-primary);
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          border: 1px solid var(--color-gray-200);
+          transition: all 0.3s ease;
+        }
 
-                    .book-actions {
-                        flex-direction: row;
-                    }
+        .wishlist-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+          border-color: var(--color-primary-light);
+        }
 
-                    .book-actions .btn {
-                        flex: 1;
-                    }
+        .wishlist-item__content {
+          display: flex;
+          padding: var(--space-4);
+          gap: var(--space-4);
+        }
 
-                    .wishlist-actions {
-                        flex-direction: column;
-                        align-items: stretch;
-                        text-align: center;
-                    }
-                }
-            `}</style>
-    </div>
+        .wishlist-item__image {
+          flex-shrink: 0;
+          width: 80px;
+          height: 120px;
+          border-radius: var(--radius-md);
+          overflow: hidden;
+          background: var(--bg-secondary);
+        }
+
+        .wishlist-item__image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+
+        .wishlist-item:hover .wishlist-item__image img {
+          transform: scale(1.05);
+        }
+
+        .wishlist-item__details {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+
+        .wishlist-item__header {
+          margin-bottom: var(--space-3);
+        }
+
+        .wishlist-item__title {
+          display: block;
+          font-size: var(--font-size-lg);
+          font-weight: var(--font-weight-semibold);
+          color: var(--text-primary);
+          text-decoration: none;
+          margin-bottom: var(--space-1);
+          line-height: 1.4;
+          transition: color 0.3s ease;
+        }
+
+        .wishlist-item__title:hover {
+          color: var(--color-primary);
+        }
+
+        .wishlist-item__author {
+          font-size: var(--font-size-sm);
+          color: var(--text-secondary);
+          margin: 0 0 var(--space-2);
+          font-style: italic;
+        }
+
+        .wishlist-item__meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--space-2);
+          align-items: center;
+        }
+
+        .wishlist-item__category {
+          padding: var(--space-1) var(--space-2);
+          background: var(--color-primary-light);
+          color: var(--color-primary);
+          font-size: var(--font-size-xs);
+          border-radius: var(--radius-full);
+          font-weight: var(--font-weight-medium);
+        }
+
+        .wishlist-item__price {
+          margin: var(--space-2) 0;
+        }
+
+        .price {
+          font-size: var(--font-size-xl);
+          font-weight: var(--font-weight-bold);
+          color: var(--color-primary);
+        }
+
+        .wishlist-item__actions {
+          display: flex;
+          gap: var(--space-2);
+          flex-wrap: wrap;
+        }
+
+        .btn--sm {
+          padding: var(--space-2) var(--space-3);
+          font-size: var(--font-size-sm);
+          height: auto;
+          min-height: 32px;
+          display: inline-flex;
+          align-items: center;
+          gap: var(--space-1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+          .wishlist-page {
+            padding: var(--space-4) 0;
+          }
+
+          .wishlist-header {
+            padding: var(--space-4);
+            margin-bottom: var(--space-6);
+          }
+
+          .wishlist-header__content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--space-4);
+          }
+
+          .wishlist-header__actions {
+            width: 100%;
+            justify-content: stretch;
+          }
+
+          .wishlist-header__actions .btn {
+            flex: 1;
+          }
+
+          .wishlist-grid {
+            grid-template-columns: 1fr;
+            gap: var(--space-4);
+          }
+
+          .wishlist-item__content {
+            flex-direction: column;
+            text-align: center;
+          }
+
+          .wishlist-item__image {
+            width: 120px;
+            height: 180px;
+            align-self: center;
+          }
+
+          .wishlist-item__actions {
+            justify-content: center;
+          }
+
+          .wishlist-item__actions .btn {
+            flex: 1;
+            min-width: 0;
+          }
+
+          .empty-state {
+            padding: 0 var(--space-4);
+          }
+        }
+
+        .btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+
+        .btn:focus-visible {
+          outline: 2px solid var(--color-primary);
+          outline-offset: 2px;
+        }
+
+        .wishlist-item__title:focus-visible {
+          outline: 2px solid var(--color-primary);
+          outline-offset: 2px;
+          border-radius: var(--radius-sm);
+        }
+      `}</style>
+    </>
   )
 }
+
+export default Wishlist
