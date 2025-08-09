@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import LoadingSpinner from '../common/LoadingSpinner'
 import {
     BookOpen,
     Package,
@@ -191,8 +192,9 @@ const sampleOrders = [
 
 export default function AdminDashboard() {
     const { user } = useAuth()
-    const [books] = useState(sampleBooks)
-    const [orders] = useState(sampleOrders)
+    const [books, setBooks] = useState([])
+    const [orders, setOrders] = useState([])
+    const [isLoading, setIsLoading] = useState(true)
     const [dateRange, setDateRange] = useState('week') // today, week, month, all
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [stats, setStats] = useState({
@@ -207,6 +209,25 @@ export default function AdminDashboard() {
         ordersTrend: 'up',
         revenueTrend: 'up'
     })
+
+    // Load sample data on component mount
+    useEffect(() => {
+        fetchDashboardData()
+    }, [])
+
+    const fetchDashboardData = async () => {
+        setIsLoading(true)
+        try {
+            // Simulate API call with sample data
+            await new Promise(resolve => setTimeout(resolve, 2500)) // Simulate loading time
+            setBooks(sampleBooks)
+            setOrders(sampleOrders)
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     // Calculate enhanced statistics with trends
     const calculateStats = useMemo(() => {
@@ -328,6 +349,16 @@ export default function AdminDashboard() {
 
     const getTrendColor = (trend) => {
         return trend === 'up' ? 'var(--color-success)' : 'var(--color-danger)'
+    }
+
+    if (isLoading) {
+        return (
+            <LoadingSpinner 
+                fullScreen={true} 
+                text="Loading dashboard..." 
+                size="lg"
+            />
+        )
     }
 
     return (

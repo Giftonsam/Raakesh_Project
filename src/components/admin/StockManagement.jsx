@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import { useBookContext } from '../../context/BookContext'
+import React, { useState, useEffect } from 'react'
 import {
     Package,
     AlertTriangle,
@@ -12,9 +11,87 @@ import {
     CheckCircle,
     X
 } from 'lucide-react'
+import LoadingSpinner from '../common/LoadingSpinner'
+
+// Sample books data for demonstration
+const sampleBooks = [
+    {
+        id: 1,
+        title: 'The Go Programming Language',
+        author: 'Alan A. A. Donovan and Brian W. Kernighan',
+        price: 400,
+        quantity: 2, // Low stock
+        category: 'Programming',
+        barcode: '9780134190563',
+        image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop'
+    },
+    {
+        id: 2,
+        title: 'C++ Primer',
+        author: 'Stanley Lippman and Josée Lajoie and Barbara Moo',
+        price: 976,
+        quantity: 0, // Out of stock
+        category: 'Programming',
+        barcode: '9780133053036',
+        image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop'
+    },
+    {
+        id: 3,
+        title: 'The Rust Programming Language',
+        author: 'Steve Klabnik and Carol Nichols',
+        price: 560,
+        quantity: 15, // Good stock
+        category: 'Programming',
+        barcode: '9781718500457',
+        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop'
+    },
+    {
+        id: 4,
+        title: 'Head First Java',
+        author: 'Kathy Sierra and Bert Bates and Trisha Gee',
+        price: 754,
+        quantity: 4, // Low stock
+        category: 'Programming',
+        barcode: '9781491910740',
+        image: 'https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=400&h=600&fit=crop'
+    },
+    {
+        id: 5,
+        title: 'Fluent Python',
+        author: 'Luciano Ramalho',
+        price: 1014,
+        quantity: 8, // Good stock
+        category: 'Programming',
+        barcode: '9781492056300',
+        image: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop'
+    },
+    {
+        id: 6,
+        title: 'Sapiens',
+        author: 'Yuval Noah Harari',
+        price: 379,
+        quantity: 1, // Low stock
+        category: 'History',
+        barcode: '9780062316097',
+        image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop'
+    },
+    {
+        id: 7,
+        title: 'The Psychology of Money',
+        author: 'Morgan Housel',
+        price: 329,
+        quantity: 12, // Good stock
+        category: 'Finance',
+        barcode: '9780852854686',
+        image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop'
+    }
+]
 
 export default function StockManagement() {
-    const { books, updateBook, isLoading, error, clearError } = useBookContext()
+    const [books, setBooks] = useState([])
+    const [isInitialLoading, setIsInitialLoading] = useState(true)
+    const [isActionLoading, setIsActionLoading] = useState(false)
+    const [error, setError] = useState('')
     const [searchQuery, setSearchQuery] = useState('')
     const [stockFilter, setStockFilter] = useState('all')
     const [showUpdateModal, setShowUpdateModal] = useState(false)
@@ -29,6 +106,48 @@ export default function StockManagement() {
 
     const lowStockThreshold = 5
     const outOfStockThreshold = 0
+
+    // Load sample data on component mount
+    useEffect(() => {
+        fetchStockData()
+    }, [])
+
+    const fetchStockData = async () => {
+        setIsInitialLoading(true)
+        try {
+            // Simulate API call with sample data
+            await new Promise(resolve => setTimeout(resolve, 2200)) // Simulate loading time
+            setBooks(sampleBooks)
+        } catch (error) {
+            console.error('Error fetching stock data:', error)
+            setError('Failed to load stock data')
+        } finally {
+            setIsInitialLoading(false)
+        }
+    }
+
+    const updateBook = async (bookId, updatedBook) => {
+        try {
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 500))
+
+            setBooks(prevBooks =>
+                prevBooks.map(book =>
+                    book.id === bookId ? updatedBook : book
+                )
+            )
+
+            return { success: true }
+        } catch (error) {
+            console.error('Error updating book:', error)
+            setError('Failed to update book')
+            return { success: false }
+        }
+    }
+
+    const clearError = () => {
+        setError('')
+    }
 
     // Filter books based on search and stock levels
     const filteredBooks = books.filter(book => {
@@ -101,6 +220,7 @@ export default function StockManagement() {
             }
         } catch (error) {
             console.error('Error updating stock:', error)
+            setError('Failed to update stock')
         } finally {
             setIsUpdating(false)
         }
@@ -116,10 +236,29 @@ export default function StockManagement() {
         const book = books.find(b => b.id === bookId)
         if (!book) return
 
-        const newQuantity = Math.max(0, book.quantity + adjustment)
-        const updatedBook = { ...book, quantity: newQuantity }
+        setIsActionLoading(true)
 
-        await updateBook(bookId, updatedBook)
+        try {
+            const newQuantity = Math.max(0, book.quantity + adjustment)
+            const updatedBook = { ...book, quantity: newQuantity }
+
+            await updateBook(bookId, updatedBook)
+        } catch (error) {
+            console.error('Error adjusting stock:', error)
+            setError('Failed to adjust stock')
+        } finally {
+            setIsActionLoading(false)
+        }
+    }
+
+    if (isInitialLoading) {
+        return (
+            <LoadingSpinner
+                fullScreen={true}
+                text="Loading stock data..."
+                size="lg"
+            />
+        )
     }
 
     return (
@@ -127,7 +266,7 @@ export default function StockManagement() {
             <div className="container">
                 <div className="page__header">
                     <h1 className="page__title">Stock Management</h1>
-                    <p className="page__subtitle">Monitor and manage your inventory levels</p>
+                    <p className="page__subtitle">Monitor and manage your inventory levels • {books.length} books in inventory</p>
                 </div>
 
                 {/* Stock Statistics */}
@@ -183,6 +322,16 @@ export default function StockManagement() {
                     </div>
                 </div>
 
+                {/* Stock Alerts */}
+                {(stockStats.lowStock > 0 || stockStats.outOfStock > 0) && (
+                    <div className="alert alert--warning">
+                        <AlertTriangle size={20} />
+                        <div>
+                            <strong>Inventory Alert:</strong> You have {stockStats.outOfStock} out of stock and {stockStats.lowStock} low stock items that need attention.
+                        </div>
+                    </div>
+                )}
+
                 {error && (
                     <div className="alert alert--error">
                         <AlertTriangle size={20} />
@@ -194,8 +343,8 @@ export default function StockManagement() {
                 )}
 
                 {/* Controls */}
-                <div className="stock-controls">
-                    <div className="search-filter-group">
+                <div className="controls">
+                    <div className="controls__left">
                         <div className="search-bar">
                             <Search className="search-bar__icon" size={20} />
                             <input
@@ -210,7 +359,7 @@ export default function StockManagement() {
                         <select
                             value={stockFilter}
                             onChange={(e) => setStockFilter(e.target.value)}
-                            className="form-input stock-filter"
+                            className="form-input"
                         >
                             <option value="all">All Stock Levels</option>
                             <option value="available">Well Stocked</option>
@@ -220,14 +369,20 @@ export default function StockManagement() {
                     </div>
                 </div>
 
+                {/* Results Info */}
+                {(searchQuery || stockFilter !== 'all') && (
+                    <div className="results-info">
+                        <p>
+                            Showing {filteredBooks.length} of {books.length} books
+                            {searchQuery && ` for "${searchQuery}"`}
+                            {stockFilter !== 'all' && ` with ${stockFilter === 'low' ? 'low stock' : stockFilter === 'out' ? 'out of stock' : stockFilter} status`}
+                        </p>
+                    </div>
+                )}
+
                 {/* Stock Table */}
                 <div className="card">
-                    {isLoading ? (
-                        <div className="loading-container">
-                            <div className="spinner"></div>
-                            <p>Loading stock data...</p>
-                        </div>
-                    ) : filteredBooks.length > 0 ? (
+                    {filteredBooks.length > 0 ? (
                         <div className="table-container">
                             <table className="table">
                                 <thead>
@@ -255,6 +410,9 @@ export default function StockManagement() {
                                                             src={book.image}
                                                             alt={book.title}
                                                             className="book-thumb"
+                                                            onError={(e) => {
+                                                                e.target.src = 'https://via.placeholder.com/40x56/3b82f6/ffffff?text=Book'
+                                                            }}
                                                         />
                                                         <div>
                                                             <div className="book-title">{book.title}</div>
@@ -284,7 +442,7 @@ export default function StockManagement() {
                                                     <div className="quick-actions">
                                                         <button
                                                             onClick={() => quickStockAdjust(book.id, -1)}
-                                                            disabled={book.quantity <= 0 || isLoading}
+                                                            disabled={book.quantity <= 0 || isActionLoading}
                                                             className="quick-btn quick-btn--subtract"
                                                             title="Decrease by 1"
                                                         >
@@ -292,7 +450,7 @@ export default function StockManagement() {
                                                         </button>
                                                         <button
                                                             onClick={() => quickStockAdjust(book.id, 1)}
-                                                            disabled={isLoading}
+                                                            disabled={isActionLoading}
                                                             className="quick-btn quick-btn--add"
                                                             title="Increase by 1"
                                                         >
@@ -325,6 +483,17 @@ export default function StockManagement() {
                                     : 'No books available in inventory.'
                                 }
                             </p>
+                            {(searchQuery || stockFilter !== 'all') && (
+                                <button
+                                    onClick={() => {
+                                        setSearchQuery('')
+                                        setStockFilter('all')
+                                    }}
+                                    className="btn btn--primary"
+                                >
+                                    Clear Filters
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
@@ -447,316 +616,616 @@ export default function StockManagement() {
                 )}
             </div>
 
-            <style jsx>{`
-        .stock-stats {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: var(--space-4);
-          margin-bottom: var(--space-8);
-        }
+            <style>{`
+                .stock-stats {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: var(--space-4);
+                    margin-bottom: var(--space-8);
+                }
 
-        .stat-card {
-          background: var(--bg-primary);
-          border: 1px solid var(--color-gray-200);
-          border-radius: var(--radius-xl);
-          padding: var(--space-6);
-          display: flex;
-          align-items: center;
-          gap: var(--space-4);
-          transition: all var(--transition-base);
-        }
+                .stat-card {
+                    background: var(--bg-primary);
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-xl);
+                    padding: var(--space-6);
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-4);
+                    transition: all var(--transition-base);
+                }
 
-        .stat-card:hover {
-          transform: translateY(-2px);
-          box-shadow: var(--shadow-md);
-        }
+                .stat-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: var(--shadow-xl);
+                }
 
-        .stat-card--wide {
-          grid-column: span 2;
-        }
+                .stat-card--wide {
+                    grid-column: span 2;
+                }
 
-        .stat-icon {
-          background: var(--color-primary-light);
-          color: var(--color-primary-dark);
-          padding: var(--space-3);
-          border-radius: var(--radius-lg);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
+                .stat-icon {
+                    background: var(--color-primary-light);
+                    color: var(--color-primary-dark);
+                    padding: var(--space-3);
+                    border-radius: var(--radius-lg);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 56px;
+                    height: 56px;
+                    flex-shrink: 0;
+                }
 
-        .stat-icon--success {
-          background: var(--color-secondary-light);
-          color: var(--color-secondary-dark);
-        }
+                .stat-icon--success {
+                    background: var(--color-success-light);
+                    color: var(--color-success-dark);
+                }
 
-        .stat-icon--warning {
-          background: rgba(245, 158, 11, 0.2);
-          color: var(--color-accent-dark);
-        }
+                .stat-icon--warning {
+                    background: var(--color-warning-light);
+                    color: var(--color-warning-dark);
+                }
 
-        .stat-icon--danger {
-          background: var(--color-danger-light);
-          color: var(--color-danger-dark);
-        }
+                .stat-icon--danger {
+                    background: var(--color-danger-light);
+                    color: var(--color-danger-dark);
+                }
 
-        .stat-icon--primary {
-          background: var(--color-primary-light);
-          color: var(--color-primary-dark);
-        }
+                .stat-icon--primary {
+                    background: var(--color-primary-light);
+                    color: var(--color-primary-dark);
+                }
 
-        .stat-content {
-          flex: 1;
-        }
+                .stat-content {
+                    flex: 1;
+                }
 
-        .stat-value {
-          font-size: var(--font-size-2xl);
-          font-weight: var(--font-weight-bold);
-          color: var(--text-primary);
-          display: block;
-        }
+                .stat-value {
+                    font-size: var(--font-size-3xl);
+                    font-weight: var(--font-weight-bold);
+                    color: var(--text-primary);
+                    display: block;
+                    margin-bottom: var(--space-1);
+                }
 
-        .stat-label {
-          color: var(--text-secondary);
-          font-size: var(--font-size-sm);
-        }
+                .stat-label {
+                    color: var(--text-secondary);
+                    font-size: var(--font-size-base);
+                    font-weight: var(--font-weight-medium);
+                }
 
-        .stock-controls {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: var(--space-4);
-          margin-bottom: var(--space-6);
-          flex-wrap: wrap;
-        }
+                .controls {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: var(--space-4);
+                    margin-bottom: var(--space-6);
+                    flex-wrap: wrap;
+                }
 
-        .search-filter-group {
-          display: flex;
-          gap: var(--space-4);
-          flex: 1;
-          max-width: 500px;
-        }
+                .controls__left {
+                    display: flex;
+                    gap: var(--space-4);
+                    flex: 1;
+                    max-width: 500px;
+                }
 
-        .stock-filter {
-          min-width: 180px;
-        }
+                .results-info {
+                    margin-bottom: var(--space-4);
+                    padding: var(--space-3);
+                    background: var(--bg-secondary);
+                    border-radius: var(--radius-lg);
+                    color: var(--text-secondary);
+                    font-size: var(--font-size-sm);
+                }
 
-        .alert__close {
-          background: none;
-          border: none;
-          color: currentColor;
-          cursor: pointer;
-          margin-left: auto;
-          padding: var(--space-1);
-          border-radius: var(--radius-base);
-          transition: background var(--transition-fast);
-        }
+                .alert {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-4);
+                    padding: var(--space-4);
+                    border-radius: var(--radius-lg);
+                    margin-bottom: var(--space-6);
+                }
 
-        .alert__close:hover {
-          background: rgba(255, 255, 255, 0.2);
-        }
+                .alert--warning {
+                    background: var(--color-warning-light);
+                    border: 2px solid var(--color-warning);
+                    color: var(--color-warning-dark);
+                }
 
-        .stock-row--out {
-          background: rgba(239, 68, 68, 0.05);
-        }
+                .alert--error {
+                    background: var(--color-danger-light);
+                    border: 2px solid var(--color-danger);
+                    color: var(--color-danger-dark);
+                }
 
-        .stock-row--low {
-          background: rgba(245, 158, 11, 0.05);
-        }
+                .alert--success {
+                    background: var(--color-success-light);
+                    border: 2px solid var(--color-success);
+                    color: var(--color-success-dark);
+                }
 
-        .book-info {
-          display: flex;
-          align-items: center;
-          gap: var(--space-3);
-        }
+                .alert > div {
+                    flex: 1;
+                }
 
-        .book-thumb {
-          width: 40px;
-          height: 56px;
-          object-fit: cover;
-          border-radius: var(--radius-base);
-        }
+                .alert__close {
+                    background: none;
+                    border: none;
+                    color: currentColor;
+                    cursor: pointer;
+                    margin-left: auto;
+                    padding: var(--space-1);
+                    border-radius: var(--radius-base);
+                    transition: background var(--transition-fast);
+                }
 
-        .book-title {
-          font-weight: var(--font-weight-medium);
-          margin-bottom: var(--space-1);
-        }
+                .alert__close:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                }
 
-        .book-author {
-          color: var(--text-secondary);
-          font-size: var(--font-size-sm);
-          margin-bottom: var(--space-1);
-        }
+                .card {
+                    background: var(--bg-primary);
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-xl);
+                    overflow: hidden;
+                    margin-bottom: var(--space-8);
+                }
 
-        .book-barcode {
-          font-size: var(--font-size-xs);
-          color: var(--text-muted);
-        }
+                .table-container {
+                    overflow-x: auto;
+                }
 
-        .price-cell {
-          font-weight: var(--font-weight-semibold);
-          color: var(--color-secondary);
-        }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
 
-        .value-cell {
-          font-weight: var(--font-weight-semibold);
-          color: var(--color-primary);
-        }
+                .table th,
+                .table td {
+                    padding: var(--space-4);
+                    text-align: left;
+                    border-bottom: 1px solid var(--color-gray-200);
+                }
 
-        .stock-quantity {
-          text-align: center;
-        }
+                .table th {
+                    background: var(--bg-secondary);
+                    font-weight: var(--font-weight-semibold);
+                    color: var(--text-primary);
+                    font-size: var(--font-size-sm);
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
 
-        .quantity-display {
-          display: inline-block;
-          padding: var(--space-1) var(--space-3);
-          border-radius: var(--radius-full);
-          font-weight: var(--font-weight-bold);
-          font-size: var(--font-size-lg);
-        }
+                .table tbody tr:hover {
+                    background: var(--bg-secondary);
+                }
 
-        .quantity-display--available {
-          background: var(--color-secondary-light);
-          color: var(--color-secondary-dark);
-        }
+                .stock-row--out {
+                    background: rgba(239, 68, 68, 0.05);
+                }
 
-        .quantity-display--low {
-          background: rgba(245, 158, 11, 0.2);
-          color: var(--color-accent-dark);
-        }
+                .stock-row--low {
+                    background: rgba(245, 158, 11, 0.05);
+                }
 
-        .quantity-display--out {
-          background: var(--color-danger-light);
-          color: var(--color-danger-dark);
-        }
+                .book-info {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                }
 
-        .quick-actions {
-          display: flex;
-          gap: var(--space-1);
-          justify-content: center;
-        }
+                .book-thumb {
+                    width: 40px;
+                    height: 56px;
+                    object-fit: cover;
+                    border-radius: var(--radius-base);
+                    border: 1px solid var(--color-gray-200);
+                }
 
-        .quick-btn {
-          background: var(--bg-secondary);
-          border: 1px solid var(--color-gray-300);
-          border-radius: var(--radius-base);
-          padding: var(--space-1);
-          color: var(--text-primary);
-          cursor: pointer;
-          transition: all var(--transition-fast);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
+                .book-title {
+                    font-weight: var(--font-weight-medium);
+                    margin-bottom: var(--space-1);
+                    color: var(--text-primary);
+                }
 
-        .quick-btn:hover:not(:disabled) {
-          transform: scale(1.1);
-        }
+                .book-author {
+                    color: var(--text-secondary);
+                    font-size: var(--font-size-sm);
+                    margin-bottom: var(--space-1);
+                }
 
-        .quick-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+                .book-barcode {
+                    font-size: var(--font-size-xs);
+                    color: var(--text-muted);
+                }
 
-        .quick-btn--add:hover:not(:disabled) {
-          background: var(--color-success);
-          border-color: var(--color-success);
-          color: var(--text-white);
-        }
+                .badge {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: var(--space-1) var(--space-2);
+                    border-radius: var(--radius-full);
+                    font-size: var(--font-size-xs);
+                    font-weight: var(--font-weight-semibold);
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
 
-        .quick-btn--subtract:hover:not(:disabled) {
-          background: var(--color-danger);
-          border-color: var(--color-danger);
-          color: var(--text-white);
-        }
+                .badge--primary {
+                    background: var(--color-primary-light);
+                    color: var(--color-primary-dark);
+                }
 
-        .current-stock-info {
-          background: var(--bg-secondary);
-          padding: var(--space-4);
-          border-radius: var(--radius-lg);
-          margin-bottom: var(--space-6);
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: var(--space-4);
-        }
+                .badge--success {
+                    background: var(--color-success-light);
+                    color: var(--color-success-dark);
+                }
 
-        .current-stock,
-        .current-value-info {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
+                .badge--warning {
+                    background: var(--color-warning-light);
+                    color: var(--color-warning-dark);
+                }
 
-        .current-label {
-          font-weight: var(--font-weight-medium);
-          color: var(--text-secondary);
-        }
+                .badge--danger {
+                    background: var(--color-danger-light);
+                    color: var(--color-danger-dark);
+                }
 
-        .current-value {
-          font-weight: var(--font-weight-bold);
-          color: var(--text-primary);
-        }
+                .price-cell {
+                    font-weight: var(--font-weight-semibold);
+                    color: var(--color-secondary);
+                }
 
-        .loading-container {
-          text-align: center;
-          padding: var(--space-16);
-          color: var(--text-muted);
-        }
+                .value-cell {
+                    font-weight: var(--font-weight-semibold);
+                    color: var(--color-primary);
+                }
 
-        .empty-state {
-          text-align: center;
-          padding: var(--space-16);
-          color: var(--text-muted);
-        }
+                .stock-quantity {
+                    text-align: center;
+                }
 
-        .empty-state h3 {
-          margin: var(--space-4) 0 var(--space-2);
-          color: var(--text-secondary);
-        }
+                .quantity-display {
+                    display: inline-block;
+                    padding: var(--space-1) var(--space-3);
+                    border-radius: var(--radius-full);
+                    font-weight: var(--font-weight-bold);
+                    font-size: var(--font-size-lg);
+                }
 
-        .table-container {
-          overflow-x: auto;
-        }
+                .quantity-display--available {
+                    background: var(--color-success-light);
+                    color: var(--color-success-dark);
+                }
 
-        @media (max-width: 1200px) {
-          .stat-card--wide {
-            grid-column: span 1;
-          }
-        }
+                .quantity-display--low {
+                    background: var(--color-warning-light);
+                    color: var(--color-warning-dark);
+                }
 
-        @media (max-width: 768px) {
-          .stock-stats {
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          }
+                .quantity-display--out {
+                    background: var(--color-danger-light);
+                    color: var(--color-danger-dark);
+                }
 
-          .stock-controls {
-            flex-direction: column;
-            align-items: stretch;
-          }
+                .quick-actions {
+                    display: flex;
+                    gap: var(--space-1);
+                    justify-content: center;
+                }
 
-          .search-filter-group {
-            max-width: 100%;
-          }
+                .quick-btn {
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--color-gray-300);
+                    border-radius: var(--radius-base);
+                    padding: var(--space-2);
+                    color: var(--text-primary);
+                    cursor: pointer;
+                    transition: all var(--transition-fast);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                }
 
-          .current-stock-info {
-            grid-template-columns: 1fr;
-          }
+                .quick-btn:hover:not(:disabled) {
+                    transform: scale(1.1);
+                }
 
-          .quick-actions {
-            flex-direction: column;
-          }
-        }
+                .quick-btn:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
 
-        @media (max-width: 640px) {
-          .search-filter-group {
-            flex-direction: column;
-          }
+                .quick-btn--add:hover:not(:disabled) {
+                    background: var(--color-success);
+                    border-color: var(--color-success);
+                    color: white;
+                }
 
-          .stock-stats {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
+                .quick-btn--subtract:hover:not(:disabled) {
+                    background: var(--color-danger);
+                    border-color: var(--color-danger);
+                    color: white;
+                }
+
+                .modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: var(--z-modal);
+                    padding: var(--space-4);
+                }
+
+                .modal {
+                    background: var(--bg-primary);
+                    border-radius: var(--radius-2xl);
+                    box-shadow: var(--shadow-2xl);
+                    max-width: 500px;
+                    width: 100%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                }
+
+                .modal__header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: var(--space-6);
+                    border-bottom: 1px solid var(--color-gray-200);
+                }
+
+                .modal__title {
+                    font-size: var(--font-size-xl);
+                    font-weight: var(--font-weight-semibold);
+                    color: var(--text-primary);
+                    margin: 0;
+                }
+
+                .modal__close {
+                    background: none;
+                    border: none;
+                    color: var(--text-muted);
+                    cursor: pointer;
+                    padding: var(--space-2);
+                    border-radius: var(--radius-base);
+                    transition: all var(--transition-fast);
+                }
+
+                .modal__close:hover {
+                    background: var(--color-gray-100);
+                    color: var(--text-primary);
+                }
+
+                .modal__body {
+                    padding: var(--space-6);
+                }
+
+                .modal__footer {
+                    display: flex;
+                    gap: var(--space-3);
+                    justify-content: flex-end;
+                    padding: var(--space-6);
+                    border-top: 1px solid var(--color-gray-200);
+                }
+
+                .current-stock-info {
+                    background: var(--bg-secondary);
+                    padding: var(--space-4);
+                    border-radius: var(--radius-lg);
+                    margin-bottom: var(--space-6);
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: var(--space-4);
+                }
+
+                .current-stock,
+                .current-value-info {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .current-label {
+                    font-weight: var(--font-weight-medium);
+                    color: var(--text-secondary);
+                }
+
+                .current-value {
+                    font-weight: var(--font-weight-bold);
+                    color: var(--text-primary);
+                }
+
+                .form-group {
+                    margin-bottom: var(--space-6);
+                }
+
+                .form-label {
+                    display: block;
+                    font-weight: var(--font-weight-medium);
+                    color: var(--text-primary);
+                    margin-bottom: var(--space-2);
+                }
+
+                .form-input {
+                    width: 100%;
+                    padding: var(--space-3);
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: var(--radius-lg);
+                    background: var(--bg-secondary);
+                    font-size: var(--font-size-base);
+                    color: var(--text-primary);
+                    transition: all var(--transition-base);
+                }
+
+                .form-input:focus {
+                    outline: none;
+                    border-color: var(--color-primary);
+                    background: var(--bg-primary);
+                    box-shadow: 0 0 0 3px var(--color-primary-light);
+                }
+
+                .form-help {
+                    margin-top: var(--space-2);
+                    font-size: var(--font-size-sm);
+                    color: var(--color-primary);
+                    font-weight: var(--font-weight-medium);
+                }
+
+                .empty-state {
+                    text-align: center;
+                    padding: var(--space-16);
+                    color: var(--text-muted);
+                }
+
+                .empty-state h3 {
+                    margin: var(--space-4) 0 var(--space-2);
+                    color: var(--text-secondary);
+                }
+
+                .spinner {
+                    display: inline-block;
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid var(--color-gray-200);
+                    border-radius: 50%;
+                    border-top-color: var(--color-primary);
+                    animation: spin 1s ease-in-out infinite;
+                }
+
+                .spinner--sm {
+                    width: 16px;
+                    height: 16px;
+                    border-width: 2px;
+                }
+
+                @keyframes spin {
+                    to {
+                        transform: rotate(360deg);
+                    }
+                }
+
+                /* Responsive Design */
+                @media (max-width: 1200px) {
+                    .stat-card--wide {
+                        grid-column: span 1;
+                    }
+                }
+
+                @media (max-width: 768px) {
+                    .stock-stats {
+                        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    }
+
+                    .controls {
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+
+                    .controls__left {
+                        max-width: 100%;
+                        flex-direction: column;
+                    }
+
+                    .current-stock-info {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .quick-actions {
+                        flex-direction: column;
+                    }
+
+                    .table th,
+                    .table td {
+                        padding: var(--space-2);
+                        font-size: var(--font-size-sm);
+                    }
+
+                    .book-info {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        text-align: left;
+                    }
+
+                    .book-thumb {
+                        align-self: center;
+                    }
+                }
+
+                @media (max-width: 640px) {
+                    .controls__left {
+                        flex-direction: column;
+                    }
+
+                    .stock-stats {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .modal__footer {
+                        flex-direction: column-reverse;
+                    }
+
+                    .modal__footer .btn {
+                        width: 100%;
+                    }
+
+                    .stat-card {
+                        padding: var(--space-4);
+                    }
+
+                    .stat-icon {
+                        width: 48px;
+                        height: 48px;
+                    }
+
+                    .stat-value {
+                        font-size: var(--font-size-2xl);
+                    }
+                }
+
+                /* Dark theme support */
+                [data-theme="dark"] .stat-card {
+                    background: var(--bg-secondary);
+                }
+
+                [data-theme="dark"] .card {
+                    background: var(--bg-secondary);
+                }
+
+                [data-theme="dark"] .modal {
+                    background: var(--bg-secondary);
+                }
+
+                [data-theme="dark"] .book-thumb {
+                    border-color: var(--color-gray-600);
+                }
+
+                [data-theme="dark"] .stock-row--out {
+                    background: rgba(239, 68, 68, 0.1);
+                }
+
+                [data-theme="dark"] .stock-row--low {
+                    background: rgba(245, 158, 11, 0.1);
+                }
+
+                [data-theme="dark"] .quick-btn {
+                    background: var(--bg-tertiary);
+                    border-color: var(--color-gray-600);
+                }
+
+                [data-theme="dark"] .current-stock-info {
+                    background: var(--bg-tertiary);
+                }
+            `}</style>
         </div>
     )
 }

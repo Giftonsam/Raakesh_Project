@@ -14,6 +14,7 @@ import {
     Tag,
     ChevronDown
 } from 'lucide-react'
+import LoadingSpinner from '../common/LoadingSpinner'
 
 // Sample books data for demonstration
 const sampleBooks = [
@@ -28,7 +29,8 @@ const sampleBooks = [
         description: 'The authoritative resource to writing clear and idiomatic Go to solve real-world problems.',
         image: 'https://ir-3.ozone.ru/s3/multimedia-j/c400/6854254939.jpg',
         rating: 4.5,
-        reviews: 124
+        reviews: 124,
+        stock: 8
     },
     {
         id: 2,
@@ -41,7 +43,8 @@ const sampleBooks = [
         description: 'Bestselling programming tutorial and reference guide to C++.',
         image: 'https://cdn.kobo.com/book-images/e7813d0d-0b16-4fb6-964b-da955ff87133/353/569/90/False/c-primer-plus-8.jpg',
         rating: 4.7,
-        reviews: 89
+        reviews: 89,
+        stock: 13
     },
     {
         id: 3,
@@ -54,7 +57,8 @@ const sampleBooks = [
         description: 'The official book on the Rust programming language, written by the Rust development team.',
         image: 'https://cdn2.penguin.com.au/covers/original/9781718504196.jpg',
         rating: 4.8,
-        reviews: 156
+        reviews: 156,
+        stock: 12
     },
     {
         id: 4,
@@ -67,7 +71,8 @@ const sampleBooks = [
         description: 'A brain-friendly guide to Java programming.',
         image: 'https://i.ebayimg.com/images/g/sBUAAOSwuMZk159R/s-l400.jpg',
         rating: 4.3,
-        reviews: 203
+        reviews: 203,
+        stock: 23
     },
     {
         id: 5,
@@ -80,7 +85,8 @@ const sampleBooks = [
         description: 'Clear, concise, and effective programming in Python.',
         image: 'https://www.oreilly.com/library/cover/9781491946237/1200w630h/',
         rating: 4.6,
-        reviews: 167
+        reviews: 167,
+        stock: 5
     },
     {
         id: 6,
@@ -93,7 +99,8 @@ const sampleBooks = [
         description: 'Your journey to master plain React without any complications.',
         image: 'https://m.media-amazon.com/images/I/518+W2zr3BL._UF1000,1000_QL80_.jpg',
         rating: 4.4,
-        reviews: 92
+        reviews: 92,
+        stock: 18
     },
     {
         id: 7,
@@ -106,7 +113,8 @@ const sampleBooks = [
         description: 'A handbook of agile software craftsmanship.',
         image: 'https://www.oreilly.com/library/cover/9780136083238/1200w630h/',
         rating: 4.9,
-        reviews: 312
+        reviews: 312,
+        stock: 3
     },
     {
         id: 8,
@@ -119,7 +127,8 @@ const sampleBooks = [
         description: 'Tackling complexity in the heart of software.',
         image: 'https://m.media-amazon.com/images/I/819YH7N-4WL._UF1000,1000_QL80_.jpg',
         rating: 4.5,
-        reviews: 78
+        reviews: 78,
+        stock: 28
     },
     {
         id: 9,
@@ -132,7 +141,8 @@ const sampleBooks = [
         description: 'A summary of computer science fundamentals.',
         image: 'https://www.oreilly.com/library/cover/9781484271070/1200w630h/',
         rating: 4.2,
-        reviews: 45
+        reviews: 45,
+        stock: 4
     },
     {
         id: 10,
@@ -145,7 +155,8 @@ const sampleBooks = [
         description: 'The story of the creation of a new computer.',
         image: 'https://imgv2-2-f.scribdassets.com/img/document/558793009/original/02dbbe66ca/1?v=1',
         rating: 4.1,
-        reviews: 67
+        reviews: 67,
+        stock: 30
     },
     {
         id: 11,
@@ -173,14 +184,19 @@ const sampleBooks = [
 
 // Sample categories extracted from books
 const sampleCategories = [
-    { id: 1, name: "Fiction" },
-    { id: 2, name: "Science Fiction" },
-    { id: 3, name: "Fantasy" },
-    { id: 4, name: "Romance" },
-    { id: 5, name: "Philosophy" },
-    { id: 6, name: "Biography" },
-    { id: 7, name: "History" },
-    { id: 8, name: "Finance" }
+    { id: 1, name: "Programming" },
+    { id: 2, name: "Web Development" },
+    { id: 3, name: "Software Engineering" },
+    { id: 4, name: "Computer Science" },
+    { id: 5, name: "Technology" },
+    { id: 6, name: "History" },
+    { id: 7, name: "Finance" },
+    { id: 8, name: "Fiction" },
+    { id: 9, name: "Science Fiction" },
+    { id: 10, name: "Fantasy" },
+    { id: 11, name: "Romance" },
+    { id: 12, name: "Philosophy" },
+    { id: 13, name: "Biography" }
 ]
 
 export default function BookManagement() {
@@ -220,7 +236,7 @@ export default function BookManagement() {
         setIsLoading(true)
         try {
             // Simulate API call with sample data
-            await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate loading time
+            await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate loading time
             setBooks(sampleBooks)
         } catch (error) {
             console.error('Error fetching books:', error)
@@ -306,7 +322,8 @@ export default function BookManagement() {
                 ...formData,
                 id: Math.max(...books.map(b => b.id)) + 1,
                 price: parseFloat(formData.price),
-                stock: parseInt(formData.stock)
+                stock: parseInt(formData.stock),
+                quantity: parseInt(formData.stock)
             }
 
             setBooks(prev => [...prev, newBook])
@@ -329,7 +346,8 @@ export default function BookManagement() {
                 ...editingBook,
                 ...formData,
                 price: parseFloat(formData.price),
-                stock: parseInt(formData.stock)
+                stock: parseInt(formData.stock),
+                quantity: parseInt(formData.stock)
             }
 
             setBooks(prev => prev.map(book =>
@@ -366,10 +384,10 @@ export default function BookManagement() {
         setFormData({
             title: book.title || '',
             author: book.author || '',
-            isbn: book.isbn || '',
+            isbn: book.isbn || book.barcode || '',
             category: book.category || '',
             price: book.price || '',
-            stock: book.stock || '',
+            stock: book.stock || book.quantity || '',
             description: book.description || '',
             image: book.image || ''
         })
@@ -380,7 +398,8 @@ export default function BookManagement() {
     const filteredBooks = books.filter(book => {
         const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            book.isbn.includes(searchQuery)
+            (book.isbn && book.isbn.includes(searchQuery)) ||
+            (book.barcode && book.barcode.includes(searchQuery))
         const matchesCategory = selectedCategory === 'all' || book.category === selectedCategory
         return matchesSearch && matchesCategory
     })
@@ -610,14 +629,11 @@ export default function BookManagement() {
 
     if (isLoading) {
         return (
-            <div className="page">
-                <div className="container">
-                    <div className="loading-container">
-                        <div className="spinner spinner--lg"></div>
-                        <p>Loading books...</p>
-                    </div>
-                </div>
-            </div>
+            <LoadingSpinner
+                fullScreen={true}
+                text="Loading books..."
+                size="lg"
+            />
         )
     }
 
@@ -716,8 +732,8 @@ export default function BookManagement() {
                                 </div>
                                 <div className="book-card__meta">
                                     <span className="book-card__price">₹{book.price}</span>
-                                    <span className={`book-card__stock ${book.stock < 10 ? 'low-stock' : ''}`}>
-                                        Stock: {book.stock}
+                                    <span className={`book-card__stock ${(book.stock || book.quantity) < 10 ? 'low-stock' : ''}`}>
+                                        Stock: {book.stock || book.quantity}
                                     </span>
                                 </div>
                             </div>
@@ -804,12 +820,6 @@ export default function BookManagement() {
             </div>
 
             <style>{`
-                .loading-container {
-                    text-align: center;
-                    padding: var(--space-16);
-                    color: var(--text-muted);
-                }
-
                 .controls {
                     display: flex;
                     justify-content: space-between;
@@ -1150,23 +1160,6 @@ export default function BookManagement() {
                     .books-grid {
                         grid-template-columns: 1fr;
                     }
-                }
-
-                .demo-features {
-                    display: flex;
-                    justify-content: center;
-                    gap: var(--space-6);
-                    margin-top: var(--space-3);
-                    flex-wrap: wrap;
-                }
-
-                .demo-feature {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-2);
-                    color: var(--color-primary-dark);
-                    font-size: var(--font-size-sm);
-                    font-weight: var(--font-weight-medium);
                 }
             `}</style>
         </div>
