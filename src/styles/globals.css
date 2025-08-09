@@ -1085,3 +1085,142 @@ a:hover {
         box-shadow: none !important;
     }
 }
+
+
+/* Add these styles to your existing Navbar component or global CSS */
+
+/* Dark Theme Variables - Add to :root or create .dark class */
+[data-theme="dark"] .navbar,
+.navbar.dark,
+body.dark .navbar {
+    --bg-primary: #1f2937;
+    --bg-secondary: #374151;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-muted: #9ca3af;
+    --color-primary: #60a5fa;
+    --color-primary-light: #1e3a8a;
+    --color-secondary: #fbbf24;
+    --color-danger: #f87171;
+    --color-danger-light: #7f1d1d;
+    --color-gray-200: #4b5563;
+    --color-border: #4b5563;
+    --color-hover: #374151;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced Theme Toggle Button for Auth Pages */
+[data-theme="dark"] .theme-toggle,
+.navbar.dark .theme-toggle,
+body.dark .navbar .theme-toggle {
+    background: #374151 !important;
+    border: 2px solid #4b5563 !important;
+    color: #d1d5db !important;
+}
+
+[data-theme="dark"] .theme-toggle:hover,
+.navbar.dark .theme-toggle:hover,
+body.dark .navbar .theme-toggle:hover {
+    background: #1e3a8a !important;
+    border-color: #60a5fa !important;
+    color: #60a5fa !important;
+}
+
+/* Enhanced Login Link for Dark Mode */
+[data-theme="dark"] .navbar__link,
+.navbar.dark .navbar__link,
+body.dark .navbar .navbar__link {
+    color: #d1d5db !important;
+    background: transparent !important;
+    border: 2px solid transparent !important;
+}
+
+[data-theme="dark"] .navbar__link:hover,
+.navbar.dark .navbar__link:hover,
+body.dark .navbar .navbar__link:hover {
+    color: #60a5fa !important;
+    background: #1e3a8a !important;
+    border-color: #60a5fa !important;
+}
+
+/* Enhanced Register Button for Dark Mode */
+[data-theme="dark"] .btn--primary,
+.navbar.dark .btn--primary,
+body.dark .navbar .btn--primary {
+    background: #60a5fa !important;
+    color: #ffffff !important;
+    border: 2px solid #60a5fa !important;
+}
+
+[data-theme="dark"] .btn--primary:hover,
+.navbar.dark .btn--primary:hover,
+body.dark .navbar .btn--primary:hover {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Navbar Background for Dark Mode */
+[data-theme="dark"] .navbar,
+.navbar.dark,
+body.dark .navbar {
+    background: #1f2937 !important;
+    border-bottom: 2px solid #4b5563 !important;
+}
+
+/* Brand Logo Dark Mode */
+[data-theme="dark"] .navbar__brand,
+.navbar.dark .navbar__brand,
+body.dark .navbar .navbar__brand {
+    color: #60a5fa !important;
+}
+
+/* Alternative approach if your theme context uses different class names */
+.dark-theme .navbar {
+    --bg-primary: #1f2937;
+    --bg-secondary: #374151;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --color-primary: #60a5fa;
+    --color-primary-light: #1e3a8a;
+    --color-border: #4b5563;
+    background: #1f2937 !important;
+    border-bottom: 2px solid #4b5563 !important;
+}
+
+.dark-theme .navbar .theme-toggle {
+    background: #374151 !important;
+    border: 2px solid #4b5563 !important;
+    color: #d1d5db !important;
+}
+
+.dark-theme .navbar .theme-toggle:hover {
+    background: #1e3a8a !important;
+    border-color: #60a5fa !important;
+    color: #60a5fa !important;
+}
+
+.dark-theme .navbar .navbar__link {
+    color: #d1d5db !important;
+}
+
+.dark-theme .navbar .navbar__link:hover {
+    color: #60a5fa !important;
+    background: #1e3a8a !important;
+    border-color: #60a5fa !important;
+}
+
+.dark-theme .navbar .btn--primary {
+    background: #60a5fa !important;
+    color: white !important;
+    border: 2px solid #60a5fa !important;
+}
+
+.dark-theme .navbar .btn--primary:hover {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+}
+
+.dark-theme .navbar .navbar__brand {
+    color: #60a5fa !important;
+}

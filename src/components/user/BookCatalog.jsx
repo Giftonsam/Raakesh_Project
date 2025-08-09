@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useCartContext } from '../../context/CartContext'
 import { useBookContext } from '../../context/BookContext'
+import LoadingSpinner from '../common/LoadingSpinner'
 import {
   Plus,
   Search,
@@ -176,7 +177,7 @@ export default function BookCatalog() {
           >
             {isAddingToCart[book.id] ? (
               <>
-                <div className="spinner spinner--sm"></div>
+                <LoadingSpinner size="sm" inline={true} />
                 Adding...
               </>
             ) : (
@@ -193,14 +194,11 @@ export default function BookCatalog() {
 
   if (isLoading) {
     return (
-      <div className="page">
-        <div className="container">
-          <div className="loading-container-centered">
-            <div className="spinner spinner--lg"></div>
-            <p>Loading books...</p>
-          </div>
-        </div>
-      </div>
+      <LoadingSpinner
+        fullScreen={true}
+        text="Loading book catalog..."
+        size="lg"
+      />
     )
   }
 
@@ -340,21 +338,6 @@ export default function BookCatalog() {
       </div>
 
       <style>{`
-                .loading-container-centered {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 60vh;
-                    text-align: center;
-                    color: var(--text-muted);
-                }
-
-                .loading-container-centered p {
-                    margin-top: var(--space-4);
-                    font-size: var(--font-size-lg);
-                }
-
                 .error-container-centered {
                     display: flex;
                     flex-direction: column;
