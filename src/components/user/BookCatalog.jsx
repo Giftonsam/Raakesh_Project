@@ -10,7 +10,8 @@ import {
   Filter as FilterIcon,
   BookOpen,
   ShoppingCart,
-  Star
+  Star,
+  Plus
 } from 'lucide-react'
 import WishlistButton from '../common/WishlistButton'
 
@@ -118,21 +119,23 @@ export default function BookCatalog() {
 
   const BookCard = ({ book, isGridView }) => (
     <div className={`book-card ${isGridView ? 'book-card--grid' : 'book-card--list'}`}>
-      <div className="book-image">
-        <Link to={`/books/${book.id}`}>
-          <img
-            src={book.image}
-            alt={book.title}
-            onError={(e) => {
-              e.target.src = 'https://via.placeholder.com/200x300/3b82f6/ffffff?text=Book'
-            }}
-          />
+      <div className="book-image-container">
+        <Link to={`/books/${book.id}`} className="book-image-link">
+          <div className="book-image">
+            <img
+              src={book.image}
+              alt={book.title}
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/300x400/e2e8f0/64748b?text=No+Image'
+              }}
+            />
+          </div>
         </Link>
 
         <WishlistButton
           bookId={book.id}
-          className="card-style"
-          size={16}
+          className="wishlist-btn"
+          size={18}
         />
       </div>
 
@@ -165,27 +168,26 @@ export default function BookCatalog() {
               {book.description?.substring(0, 150)}...
             </p>
           )}
+        </div>
 
+        <div className="book-footer">
           <div className="book-price">
             <span className="price-current">₹{book.price}</span>
           </div>
-        </div>
 
-        <div className="book-actions">
           <button
             onClick={() => handleAddToCart(book)}
-            className="btn btn--primary"
+            className={`add-to-cart-btn ${book.quantity === 0 ? 'disabled' : ''} ${isActionLoading(`cart-${book.id}`) ? 'loading' : ''}`}
             disabled={book.quantity === 0 || isActionLoading(`cart-${book.id}`)}
           >
             {isActionLoading(`cart-${book.id}`) ? (
-              <>
-                <div className="btn-loading-spinner"></div>
-                Adding...
-              </>
+              <div className="btn-loading-spinner"></div>
+            ) : book.quantity === 0 ? (
+              <span>Out of Stock</span>
             ) : (
               <>
-                <ShoppingCart size={16} />
-                {book.quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+                <Plus size={16} />
+                <span>Add to Cart</span>
               </>
             )}
           </button>
@@ -345,124 +347,151 @@ export default function BookCatalog() {
       </div>
 
       <style>{`
-        /* Enhanced loading styles */
-        .btn-loading-spinner {
-          width: 16px;
-          height: 16px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-radius: 50%;
-          border-top-color: white;
-          animation: spin 1s linear infinite;
-          margin-right: 8px;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        /* Rest of your existing styles... */
-        .error-container-centered {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          min-height: 60vh;
-          text-align: center;
-          color: var(--text-muted);
-        }
-
-        .error-container-centered h2 {
-          color: var(--color-danger);
-          margin-bottom: var(--space-4);
-        }
-
-        .catalog-controls {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: var(--space-4);
-          margin-bottom: var(--space-6);
-          flex-wrap: wrap;
-        }
-
-        .controls-left {
-          display: flex;
-          gap: var(--space-4);
-          flex: 1;
-          max-width: 800px;
-        }
-
-        .controls-right {
-          display: flex;
-          align-items: center;
-          gap: var(--space-4);
-        }
-
-        /* Grid and List styles */
+        /* Enhanced Card Styles */
         .books-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: var(--space-6);
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: var(--space-6, 2rem);
         }
 
-        .book-card--grid {
-          background: var(--bg-primary);
-          border: 2px solid var(--color-gray-200);
-          border-radius: var(--radius-xl);
-          overflow: hidden;
-          transition: all var(--transition-base);
+        .books-list {
           display: flex;
           flex-direction: column;
+          gap: var(--space-4, 1.5rem);
         }
 
-        .book-card--grid:hover {
+        .book-card {
+          background: var(--bg-primary, #ffffff);
+          border: 1px solid var(--color-gray-200, #e5e7eb);
+          border-radius: 16px;
+          overflow: hidden;
+          transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-card:hover {
           transform: translateY(-4px);
-          box-shadow: var(--shadow-xl);
-          border-color: var(--color-primary);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          border-color: var(--color-primary, #3b82f6);
+        }
+
+        .book-card--list {
+          flex-direction: row;
+          max-height: 200px;
+        }
+
+        .book-image-container {
+          position: relative;
+        }
+
+        .book-image-link {
+          display: block;
         }
 
         .book-image {
-          position: relative;
-          height: 250px;
-          background: var(--bg-secondary);
+          width: 100%;
+          height: 300px;
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          border-radius: 0;
+        }
+
+        .book-card--list .book-image {
+          width: 140px;
+          height: 200px;
+          flex-shrink: 0;
         }
 
         .book-image img {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform var(--transition-base);
+          transition: transform 0.3s ease;
+        }
+
+        .book-card:hover .book-image img {
+          transform: scale(1.02);
+        }
+
+        .wishlist-btn {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: rgba(255, 255, 255, 0.95);
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          border-radius: 50%;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .wishlist-btn:hover {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.3);
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
         }
 
         .book-content {
-          padding: var(--space-4);
+          padding: var(--space-4, 1.5rem);
           display: flex;
           flex-direction: column;
           flex: 1;
+          justify-content: space-between;
+        }
+
+        .book-info {
+          margin-bottom: var(--space-4, 1.5rem);
+        }
+
+        .book-title {
+          margin-bottom: var(--space-2, 0.75rem);
         }
 
         .book-title a {
-          font-size: var(--font-size-base);
-          font-weight: var(--font-weight-semibold);
-          color: var(--text-primary);
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: var(--text-primary, #1f2937);
           text-decoration: none;
-          transition: color var(--transition-fast);
+          line-height: 1.4;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          transition: color 0.2s ease;
         }
 
         .book-title a:hover {
-          color: var(--color-primary);
+          color: var(--color-primary, #3b82f6);
+        }
+
+        .book-author {
+          color: var(--text-muted, #6b7280);
+          font-size: 0.875rem;
+          margin-bottom: var(--space-3, 1rem);
+          font-weight: 500;
         }
 
         .book-rating {
           display: flex;
           align-items: center;
-          gap: var(--space-2);
-          margin-bottom: var(--space-3);
+          gap: var(--space-2, 0.75rem);
+          margin-bottom: var(--space-3, 1rem);
         }
 
         .stars {
           display: flex;
-          gap: var(--space-1);
+          gap: 1px;
         }
 
         .star-filled {
@@ -471,28 +500,300 @@ export default function BookCatalog() {
         }
 
         .star-empty {
-          color: var(--color-gray-300);
+          color: var(--color-gray-300, #d1d5db);
+        }
+
+        .rating-text {
+          font-size: 0.875rem;
+          color: var(--text-muted, #6b7280);
+          font-weight: 500;
+        }
+
+        .book-description {
+          color: var(--text-muted, #6b7280);
+          font-size: 0.875rem;
+          line-height: 1.5;
+          margin-bottom: var(--space-3, 1rem);
+        }
+
+        .book-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: var(--space-3, 1rem);
         }
 
         .book-price {
-          margin-bottom: var(--space-4);
+          display: flex;
+          flex-direction: column;
         }
 
         .price-current {
-          font-size: var(--font-size-lg);
-          font-weight: var(--font-weight-bold);
-          color: var(--color-secondary);
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: var(--color-secondary, #059669);
         }
 
-        .book-actions {
+        .add-to-cart-btn {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          border-radius: 25px;
+          padding: 10px 24px;
+          font-size: 0.85rem;
+          font-weight: 500;
+          cursor: pointer;
           display: flex;
-          gap: var(--space-2);
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          min-height: 40px;
+          white-space: nowrap;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+        }
+
+        .add-to-cart-btn::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+          transition: left 0.5s;
+        }
+
+        .add-to-cart-btn:hover::before {
+          left: 100%;
+        }
+
+        .add-to-cart-btn:hover:not(.disabled):not(.loading) {
+          background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .add-to-cart-btn:active {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .add-to-cart-btn.disabled {
+          background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: 0 2px 4px rgba(156, 163, 175, 0.2);
+        }
+
+        .add-to-cart-btn.disabled::before {
+          display: none;
+        }
+
+        .add-to-cart-btn.loading {
+          cursor: wait;
+          background: linear-gradient(135deg, #8b9dc3 0%, #9ca3af 100%);
+        }
+
+        .add-to-cart-btn.loading::before {
+          display: none;
+        }
+
+        .btn-loading-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top-color: white;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        /* List view specific styles */
+        .book-card--list .book-content {
+          padding: var(--space-4, 1.5rem);
+        }
+
+        .book-card--list .book-footer {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: var(--space-2, 0.75rem);
+        }
+
+        .book-card--list .add-to-cart-btn {
+          align-self: stretch;
+          justify-content: center;
+        }
+
+        /* View toggle buttons */
+        .view-toggle {
+          display: flex;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          padding: 4px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .view-button {
+          background: transparent;
+          border: none;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          color: rgba(255, 255, 255, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .view-button:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .view-button.active {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Enhanced form inputs */
+        .search-bar {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .search-bar__input {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
+          padding: 12px 16px 12px 48px;
+          color: white;
+          font-size: 0.875rem;
+          transition: all 0.3s ease;
+          min-width: 280px;
+        }
+
+        .search-bar__input::placeholder {
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-bar__input:focus {
+          outline: none;
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(102, 126, 234, 0.5);
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-bar__icon {
+          position: absolute;
+          left: 16px;
+          color: rgba(255, 255, 255, 0.6);
+          z-index: 1;
+        }
+
+        .form-input {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
+          padding: 12px 16px;
+          color: white;
+          font-size: 0.875rem;
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+
+        .form-input:focus {
+          outline: none;
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(102, 126, 234, 0.5);
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input option {
+          background: #1f2937;
+          color: white;
+        }
+        .error-container-centered {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 60vh;
+          text-align: center;
+          color: var(--text-muted, #6b7280);
+        }
+
+        .error-container-centered h2 {
+          color: var(--color-danger, #ef4444);
+          margin-bottom: var(--space-4, 1.5rem);
+        }
+
+        .catalog-controls {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: var(--space-4, 1.5rem);
+          margin-bottom: var(--space-6, 2rem);
+          flex-wrap: wrap;
+        }
+
+        .controls-left {
+          display: flex;
+          gap: var(--space-4, 1.5rem);
+          flex: 1;
+          max-width: 800px;
+        }
+
+        .controls-right {
+          display: flex;
+          align-items: center;
+          gap: var(--space-4, 1.5rem);
         }
 
         .no-results {
           text-align: center;
-          padding: var(--space-16);
-          color: var(--text-muted);
+          padding: var(--space-16, 4rem);
+          color: var(--text-muted, #6b7280);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+          .books-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: var(--space-4, 1.5rem);
+          }
+
+          .book-card--list {
+            flex-direction: column;
+            max-height: none;
+          }
+
+          .book-card--list .book-image {
+            width: 100%;
+            height: 200px;
+          }
+
+          .catalog-controls {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .controls-left {
+            max-width: none;
+            flex-direction: column;
+          }
+
+          .controls-right {
+            justify-content: space-between;
+          }
         }
       `}</style>
     </div>
