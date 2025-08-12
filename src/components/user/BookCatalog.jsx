@@ -3,21 +3,12 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useCartContext } from '../../context/CartContext'
 import { useBookContext } from '../../context/BookContext'
+import { useMultipleLoading } from '../../hooks/useLoading'
 import LoadingSpinner from '../common/LoadingSpinner'
 import {
-  Plus,
   Search,
-  Filter,
-  Edit2,
-  Trash2,
-  Eye,
   Filter as FilterIcon,
   BookOpen,
-  X,
-  Save,
-  Upload,
-  Tag,
-  ChevronDown,
   ShoppingCart,
   Star
 } from 'lucide-react'
@@ -30,7 +21,21 @@ export default function BookCatalog() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('title')
   const [viewMode, setViewMode] = useState('grid')
-  const [isAddingToCart, setIsAddingToCart] = useState({})
+
+  // Enhanced loading management
+  const { loadingStates, setLoading, withLoading, isLoading: isActionLoading } = useMultipleLoading()
+  const [pageInitialized, setPageInitialized] = useState(false)
+
+  // Initialize page with loading
+  useEffect(() => {
+    const initializePage = async () => {
+      // Simulate page initialization time
+      await new Promise(resolve => setTimeout(resolve, 800))
+      setPageInitialized(true)
+    }
+
+    initializePage()
+  }, [])
 
   // Filter and sort books
   const filteredBooks = books
@@ -60,51 +65,48 @@ export default function BookCatalog() {
   const handleAddToCart = async (book) => {
     if (book.quantity === 0) return
 
-    setIsAddingToCart(prev => ({ ...prev, [book.id]: true }))
+    await withLoading(`cart-${book.id}`, async () => {
+      try {
+        const result = await addToCart(book.id, 1)
 
-    try {
-      const result = await addToCart(book.id, 1)
-
-      if (result.success) {
-        // Show success notification
-        showNotification(`"${book.title}" added to cart!`, 'success')
-      } else {
-        showNotification(result.error || 'Failed to add to cart', 'error')
+        if (result.success) {
+          showNotification(`"${book.title}" added to cart!`, 'success')
+        } else {
+          showNotification(result.error || 'Failed to add to cart', 'error')
+        }
+      } catch (error) {
+        console.error('Error adding to cart:', error)
+        showNotification('Failed to add to cart', 'error')
       }
-    } catch (error) {
-      console.error('Error adding to cart:', error)
-      showNotification('Failed to add to cart', 'error')
-    } finally {
-      setIsAddingToCart(prev => ({ ...prev, [book.id]: false }))
-    }
+    }, 600) // Minimum 600ms loading time for cart action
   }
 
   const showNotification = (message, type = 'success') => {
     const notification = document.createElement('div')
     notification.textContent = message
     notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? 'var(--color-secondary)' : 'var(--color-danger)'};
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            z-index: 10000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            font-size: 14px;
-            font-weight: 500;
-            animation: slideInRight 0.3s ease-out;
-        `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'success' ? '#10b981' : '#ef4444'};
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-size: 14px;
+      font-weight: 500;
+      animation: slideInRight 0.3s ease-out;
+    `
 
     document.head.insertAdjacentHTML('beforeend', `
-            <style>
-                @keyframes slideInRight {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            </style>
-        `)
+      <style>
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      </style>
+    `)
 
     document.body.appendChild(notification)
     setTimeout(() => {
@@ -173,11 +175,11 @@ export default function BookCatalog() {
           <button
             onClick={() => handleAddToCart(book)}
             className="btn btn--primary"
-            disabled={book.quantity === 0 || isAddingToCart[book.id]}
+            disabled={book.quantity === 0 || isActionLoading(`cart-${book.id}`)}
           >
-            {isAddingToCart[book.id] ? (
+            {isActionLoading(`cart-${book.id}`) ? (
               <>
-                <LoadingSpinner size="sm" inline={true} />
+                <div className="btn-loading-spinner"></div>
                 Adding...
               </>
             ) : (
@@ -192,12 +194,14 @@ export default function BookCatalog() {
     </div>
   )
 
-  if (isLoading) {
+  // Show loading during page initialization or data loading
+  if (!pageInitialized || isLoading) {
     return (
       <LoadingSpinner
         fullScreen={true}
-        text="Loading book catalog..."
+        text={!pageInitialized ? "Initializing book catalog..." : "Loading books..."}
         size="lg"
+        color="primary"
       />
     )
   }
@@ -210,7 +214,10 @@ export default function BookCatalog() {
             <h2>Error Loading Books</h2>
             <p>{error}</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                setPageInitialized(false)
+                window.location.reload()
+              }}
               className="btn btn--primary"
             >
               Retry
@@ -338,352 +345,156 @@ export default function BookCatalog() {
       </div>
 
       <style>{`
-                .error-container-centered {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 60vh;
-                    text-align: center;
-                    color: var(--text-muted);
-                }
+        /* Enhanced loading styles */
+        .btn-loading-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top-color: white;
+          animation: spin 1s linear infinite;
+          margin-right: 8px;
+        }
 
-                .error-container-centered h2 {
-                    color: var(--color-danger);
-                    margin-bottom: var(--space-4);
-                }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
 
-                .error-container-centered p {
-                    margin-bottom: var(--space-6);
-                }
+        /* Rest of your existing styles... */
+        .error-container-centered {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 60vh;
+          text-align: center;
+          color: var(--text-muted);
+        }
 
-                .catalog-controls {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: var(--space-4);
-                    margin-bottom: var(--space-6);
-                    flex-wrap: wrap;
-                }
+        .error-container-centered h2 {
+          color: var(--color-danger);
+          margin-bottom: var(--space-4);
+        }
 
-                .controls-left {
-                    display: flex;
-                    gap: var(--space-4);
-                    flex: 1;
-                    max-width: 800px;
-                }
+        .catalog-controls {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: var(--space-4);
+          margin-bottom: var(--space-6);
+          flex-wrap: wrap;
+        }
 
-                .controls-right {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-4);
-                }
+        .controls-left {
+          display: flex;
+          gap: var(--space-4);
+          flex: 1;
+          max-width: 800px;
+        }
 
-                .category-filter,
-                .sort-filter {
-                    min-width: 150px;
-                }
+        .controls-right {
+          display: flex;
+          align-items: center;
+          gap: var(--space-4);
+        }
 
-                .results-info {
-                    margin-bottom: var(--space-4);
-                    padding: var(--space-3);
-                    background: var(--bg-secondary);
-                    border-radius: var(--radius-lg);
-                    color: var(--text-secondary);
-                    font-size: var(--font-size-sm);
-                }
+        /* Grid and List styles */
+        .books-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: var(--space-6);
+        }
 
-                .view-toggle {
-                    display: flex;
-                    border: 2px solid var(--color-gray-200);
-                    border-radius: var(--radius-lg);
-                    overflow: hidden;
-                }
+        .book-card--grid {
+          background: var(--bg-primary);
+          border: 2px solid var(--color-gray-200);
+          border-radius: var(--radius-xl);
+          overflow: hidden;
+          transition: all var(--transition-base);
+          display: flex;
+          flex-direction: column;
+        }
 
-                .view-button {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: var(--space-2) var(--space-3);
-                    border: none;
-                    background: var(--bg-secondary);
-                    color: var(--text-secondary);
-                    cursor: pointer;
-                    transition: all var(--transition-fast);
-                }
+        .book-card--grid:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-xl);
+          border-color: var(--color-primary);
+        }
 
-                .view-button:hover {
-                    background: var(--color-primary-light);
-                    color: var(--color-primary);
-                }
+        .book-image {
+          position: relative;
+          height: 250px;
+          background: var(--bg-secondary);
+        }
 
-                .view-button.active {
-                    background: var(--color-primary);
-                    color: white;
-                }
+        .book-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform var(--transition-base);
+        }
 
-                .results-count {
-                    font-size: var(--font-size-sm);
-                    color: var(--text-muted);
-                    white-space: nowrap;
-                }
+        .book-content {
+          padding: var(--space-4);
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+        }
 
-                /* Grid View */
-                .books-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                    gap: var(--space-6);
-                }
+        .book-title a {
+          font-size: var(--font-size-base);
+          font-weight: var(--font-weight-semibold);
+          color: var(--text-primary);
+          text-decoration: none;
+          transition: color var(--transition-fast);
+        }
 
-                .book-card--grid {
-                    background: var(--bg-primary);
-                    border: 2px solid var(--color-gray-200);
-                    border-radius: var(--radius-xl);
-                    overflow: hidden;
-                    transition: all var(--transition-base);
-                    display: flex;
-                    flex-direction: column;
-                }
+        .book-title a:hover {
+          color: var(--color-primary);
+        }
 
-                .book-card--grid:hover {
-                    transform: translateY(-4px);
-                    box-shadow: var(--shadow-xl);
-                    border-color: var(--color-primary);
-                }
+        .book-rating {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          margin-bottom: var(--space-3);
+        }
 
-                .book-card--grid .book-image {
-                    position: relative;
-                    height: 250px;
-                    background: var(--bg-secondary);
-                }
+        .stars {
+          display: flex;
+          gap: var(--space-1);
+        }
 
-                .book-card--grid .book-content {
-                    padding: var(--space-4);
-                    display: flex;
-                    flex-direction: column;
-                    flex: 1;
-                }
+        .star-filled {
+          color: #fbbf24;
+          fill: currentColor;
+        }
 
-                /* List View */
-                .books-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: var(--space-4);
-                }
+        .star-empty {
+          color: var(--color-gray-300);
+        }
 
-                .book-card--list {
-                    background: var(--bg-primary);
-                    border: 2px solid var(--color-gray-200);
-                    border-radius: var(--radius-xl);
-                    overflow: hidden;
-                    transition: all var(--transition-base);
-                    display: flex;
-                    height: 200px;
-                }
+        .book-price {
+          margin-bottom: var(--space-4);
+        }
 
-                .book-card--list:hover {
-                    transform: translateY(-2px);
-                    box-shadow: var(--shadow-lg);
-                    border-color: var(--color-primary);
-                }
+        .price-current {
+          font-size: var(--font-size-lg);
+          font-weight: var(--font-weight-bold);
+          color: var(--color-secondary);
+        }
 
-                .book-card--list .book-image {
-                    position: relative;
-                    width: 140px;
-                    flex-shrink: 0;
-                    background: var(--bg-secondary);
-                }
+        .book-actions {
+          display: flex;
+          gap: var(--space-2);
+        }
 
-                .book-card--list .book-content {
-                    padding: var(--space-4);
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                    flex: 1;
-                }
-
-                /* Common Book Card Styles */
-                .book-image img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    transition: transform var(--transition-base);
-                }
-
-                .book-card:hover .book-image img {
-                    transform: scale(1.02);
-                }
-
-                .book-info {
-                    flex: 1;
-                    margin-bottom: var(--space-4);
-                }
-
-                .book-title {
-                    margin-bottom: var(--space-2);
-                }
-
-                .book-title a {
-                    font-size: var(--font-size-base);
-                    font-weight: var(--font-weight-semibold);
-                    color: var(--text-primary);
-                    text-decoration: none;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    transition: color var(--transition-fast);
-                }
-
-                .book-title a:hover {
-                    color: var(--color-primary);
-                }
-
-                .book-author {
-                    color: var(--text-secondary);
-                    font-size: var(--font-size-sm);
-                    margin-bottom: var(--space-3);
-                }
-
-                .book-rating {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-2);
-                    margin-bottom: var(--space-3);
-                }
-
-                .stars {
-                    display: flex;
-                    gap: var(--space-1);
-                }
-
-                .star-filled {
-                    color: #fbbf24;
-                    fill: currentColor;
-                }
-
-                .star-empty {
-                    color: var(--color-gray-300);
-                }
-
-                .rating-text {
-                    font-size: var(--font-size-sm);
-                    color: var(--text-muted);
-                }
-
-                .book-description {
-                    color: var(--text-secondary);
-                    font-size: var(--font-size-sm);
-                    line-height: 1.5;
-                    margin-bottom: var(--space-3);
-                }
-
-                .book-price {
-                    margin-bottom: var(--space-4);
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-2);
-                    flex-wrap: wrap;
-                }
-
-                .price-current {
-                    font-size: var(--font-size-lg);
-                    font-weight: var(--font-weight-bold);
-                    color: var(--color-secondary);
-                }
-
-                .book-actions {
-                    display: flex;
-                    gap: var(--space-2);
-                }
-
-                .book-card--grid .book-actions {
-                    flex-direction: column;
-                }
-
-                .book-card--list .book-actions {
-                    flex-direction: row;
-                    align-items: center;
-                }
-
-                .no-results {
-                    text-align: center;
-                    padding: var(--space-16);
-                    color: var(--text-muted);
-                }
-
-                .no-results h3 {
-                    margin: var(--space-4) 0 var(--space-2);
-                    color: var(--text-secondary);
-                }
-
-                @media (max-width: 1024px) {
-                    .catalog-controls {
-                        flex-direction: column;
-                        align-items: stretch;
-                    }
-
-                    .controls-left {
-                        max-width: 100%;
-                        flex-wrap: wrap;
-                    }
-
-                    .controls-right {
-                        justify-content: space-between;
-                    }
-
-                    .books-grid {
-                        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                    }
-                }
-
-                @media (max-width: 768px) {
-                    .controls-left {
-                        flex-direction: column;
-                        gap: var(--space-3);
-                    }
-
-                    .books-grid {
-                        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                        gap: var(--space-4);
-                    }
-
-                    .book-card--list {
-                        height: auto;
-                        flex-direction: column;
-                    }
-
-                    .book-card--list .book-image {
-                        width: 100%;
-                        height: 200px;
-                    }
-
-                    .book-card--list .book-actions {
-                        flex-direction: column;
-                    }
-
-                    .view-toggle {
-                        order: -1;
-                        width: 100%;
-                        justify-content: center;
-                    }
-
-                    .view-button {
-                        flex: 1;
-                        justify-content: center;
-                    }
-                }
-
-                @media (max-width: 480px) {
-                    .books-grid {
-                        grid-template-columns: 1fr;
-                    }
-
-                    .book-actions .btn {
-                        width: 100%;
-                    }
-                }
-            `}</style>
+        .no-results {
+          text-align: center;
+          padding: var(--space-16);
+          color: var(--text-muted);
+        }
+      `}</style>
     </div>
   )
 }
