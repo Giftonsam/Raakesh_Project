@@ -1,8 +1,9 @@
 // src/components/user/BookCatalog.jsx
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom' // ADD useNavigate to existing import
 import { useCartContext } from '../../context/CartContext'
 import { useBookContext } from '../../context/BookContext'
+import { useAuthContext } from '../../context/AuthContext' // ADD THIS IMPORT
 import { useMultipleLoading } from '../../hooks/useLoading'
 import LoadingSpinner from '../common/LoadingSpinner'
 import {
@@ -11,7 +12,8 @@ import {
   BookOpen,
   ShoppingCart,
   Star,
-  Plus
+  Plus,
+  MessageSquare // ADD THIS IMPORT
 } from 'lucide-react'
 import WishlistButton from '../common/WishlistButton'
 
@@ -117,84 +119,124 @@ export default function BookCatalog() {
     }, 3000)
   }
 
-  const BookCard = ({ book, isGridView }) => (
-    <div className={`book-card ${isGridView ? 'book-card--grid' : 'book-card--list'}`}>
-      <div className="book-image-container">
-        <Link to={`/books/${book.id}`} className="book-image-link">
-          <div className="book-image">
-            <img
-              src={book.image}
-              alt={book.title}
-              onError={(e) => {
-                e.target.src = 'https://via.placeholder.com/300x400/e2e8f0/64748b?text=No+Image'
-              }}
-            />
-          </div>
-        </Link>
+  // ENHANCED BookCard component with feedback functionality
+  const BookCard = ({ book, isGridView }) => {
+    const navigate = useNavigate() // ADD THIS LINE
+    const { user } = useAuthContext() // ADD THIS LINE
 
-        <WishlistButton
-          bookId={book.id}
-          className="wishlist-btn"
-          size={18}
-        />
-      </div>
+    // ADD THIS FUNCTION
+    const handleGiveFeedback = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-      <div className="book-content">
-        <div className="book-info">
-          <h3 className="book-title">
-            <Link to={`/books/${book.id}`}>
-              {book.title}
-            </Link>
-          </h3>
-          <p className="book-author">by {book.author}</p>
+      if (!user) {
+        navigate('/login', { state: { returnTo: `/books/${book.id}/feedback` } });
+        return;
+      }
+      navigate('/feedback', { state: { selectedBookId: book.id } });
+    };
 
-          {book.rating && (
-            <div className="book-rating">
-              <div className="stars">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={14}
-                    className={i < Math.floor(book.rating) ? 'star-filled' : 'star-empty'}
-                  />
-                ))}
-              </div>
-              <span className="rating-text">({book.rating})</span>
+    return (
+      <div className={`book-card ${isGridView ? 'book-card--grid' : 'book-card--list'}`}>
+        <div className="book-image-container">
+          <Link to={`/books/${book.id}`} className="book-image-link">
+            <div className="book-image">
+              <img
+                src={book.image}
+                alt={book.title}
+                onError={(e) => {
+                  e.target.src = 'https://via.placeholder.com/300x400/e2e8f0/64748b?text=No+Image'
+                }}
+              />
             </div>
-          )}
+          </Link>
 
-          {!isGridView && (
-            <p className="book-description">
-              {book.description?.substring(0, 150)}...
-            </p>
-          )}
-        </div>
+          <WishlistButton
+            bookId={book.id}
+            className="wishlist-btn"
+            size={18}
+          />
 
-        <div className="book-footer">
-          <div className="book-price">
-            <span className="price-current">₹{book.price}</span>
-          </div>
-
+          {/* NEW: Feedback Button Overlay - Shows on hover */}
           <button
-            onClick={() => handleAddToCart(book)}
-            className={`add-to-cart-btn ${book.quantity === 0 ? 'disabled' : ''} ${isActionLoading(`cart-${book.id}`) ? 'loading' : ''}`}
-            disabled={book.quantity === 0 || isActionLoading(`cart-${book.id}`)}
+            onClick={handleGiveFeedback}
+            className="feedback-overlay-btn"
+            title="Write Review"
           >
-            {isActionLoading(`cart-${book.id}`) ? (
-              <div className="btn-loading-spinner"></div>
-            ) : book.quantity === 0 ? (
-              <span>Out of Stock</span>
-            ) : (
-              <>
-                <Plus size={16} />
-                <span>Add to Cart</span>
-              </>
-            )}
+            <MessageSquare size={16} />
+            <span>Review</span>
           </button>
         </div>
+
+        <div className="book-content">
+          <div className="book-info">
+            <h3 className="book-title">
+              <Link to={`/books/${book.id}`}>
+                {book.title}
+              </Link>
+            </h3>
+            <p className="book-author">by {book.author}</p>
+
+            {book.rating && (
+              <div className="book-rating">
+                <div className="stars">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      className={i < Math.floor(book.rating) ? 'star-filled' : 'star-empty'}
+                    />
+                  ))}
+                </div>
+                <span className="rating-text">({book.rating})</span>
+              </div>
+            )}
+
+            {!isGridView && (
+              <p className="book-description">
+                {book.description?.substring(0, 150)}...
+              </p>
+            )}
+          </div>
+
+          <div className="book-footer">
+            <div className="book-price">
+              <span className="price-current">₹{book.price}</span>
+            </div>
+
+            {/* MODIFIED: Changed from single button to button group with feedback */}
+            <div className="book-actions">
+              <button
+                onClick={() => handleAddToCart(book)}
+                className={`add-to-cart-btn ${book.quantity === 0 ? 'disabled' : ''} ${isActionLoading(`cart-${book.id}`) ? 'loading' : ''}`}
+                disabled={book.quantity === 0 || isActionLoading(`cart-${book.id}`)}
+              >
+                {isActionLoading(`cart-${book.id}`) ? (
+                  <div className="btn-loading-spinner"></div>
+                ) : book.quantity === 0 ? (
+                  <span>Out of Stock</span>
+                ) : (
+                  <>
+                    <Plus size={16} />
+                    <span>Add to Cart</span>
+                  </>
+                )}
+              </button>
+
+              {/* NEW: Small Feedback Button */}
+              <button
+                onClick={handleGiveFeedback}
+                className="feedback-btn-small"
+                title="Write Review"
+              >
+                <MessageSquare size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   // Show loading during page initialization or data loading
   if (!pageInitialized || isLoading) {
@@ -442,6 +484,61 @@ export default function BookCatalog() {
           box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
         }
 
+        /* NEW FEEDBACK BUTTON STYLES */
+        .feedback-overlay-btn {
+          position: absolute;
+          bottom: 12px;
+          left: 12px;
+          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+          color: white;
+          border: none;
+          border-radius: 20px;
+          padding: 8px 12px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          opacity: 0;
+          transform: translateY(10px);
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+          z-index: 2;
+        }
+
+        .book-card:hover .feedback-overlay-btn {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .feedback-overlay-btn:hover {
+          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .feedback-btn-small {
+          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          width: 32px;
+          height: 32px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25);
+          flex-shrink: 0;
+        }
+
+        .feedback-btn-small:hover {
+          transform: translateY(-1px) scale(1.05);
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
         .book-content {
           padding: var(--space-4, 1.5rem);
           display: flex;
@@ -534,12 +631,19 @@ export default function BookCatalog() {
           color: var(--color-secondary, #059669);
         }
 
+        /* MODIFIED: Book actions container for multiple buttons */
+        .book-actions {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
         .add-to-cart-btn {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           border: none;
           border-radius: 25px;
-          padding: 10px 24px;
+          padding: 10px 20px;
           font-size: 0.85rem;
           font-weight: 500;
           cursor: pointer;
@@ -625,8 +729,13 @@ export default function BookCatalog() {
           gap: var(--space-2, 0.75rem);
         }
 
+        .book-card--list .book-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+
         .book-card--list .add-to-cart-btn {
-          align-self: stretch;
+          flex: 1;
           justify-content: center;
         }
 
@@ -800,7 +909,7 @@ export default function BookCatalog() {
           margin-bottom: var(--space-4, 1.5rem);
         }
 
-        /* Responsive design */
+        /* Mobile responsive adjustments */
         @media (max-width: 768px) {
           .books-grid {
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -834,6 +943,45 @@ export default function BookCatalog() {
 
           .search-bar__input {
             min-width: 100%;
+          }
+
+          /* Mobile feedback button adjustments */
+          .book-actions {
+            gap: 0.5rem;
+            width: 100%;
+            justify-content: space-between;
+          }
+
+          .add-to-cart-btn {
+            flex: 1;
+            justify-content: center;
+          }
+
+          .feedback-btn-small {
+            width: 40px;
+            height: 40px;
+          }
+
+          .feedback-overlay-btn {
+            position: static;
+            opacity: 1;
+            transform: none;
+            margin-top: 0.5rem;
+            align-self: stretch;
+            justify-content: center;
+            order: 3;
+          }
+
+          .book-card--list .book-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+
+          .book-card--list .feedback-btn-small {
+            width: 100%;
+            height: auto;
+            padding: 8px;
+            border-radius: 6px;
           }
         }
 

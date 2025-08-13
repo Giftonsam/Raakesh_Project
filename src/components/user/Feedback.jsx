@@ -1,5 +1,6 @@
 // src/components/user/Feedback.jsx
 import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useBookContext } from '../../context/BookContext'
 import { useAuth } from '../../hooks/useAuth'
 import {
@@ -19,6 +20,7 @@ import {
 export default function Feedback() {
     const { books } = useBookContext()
     const { user } = useAuth()
+    const location = useLocation()
 
     const [selectedBook, setSelectedBook] = useState('')
     const [rating, setRating] = useState(0)
@@ -63,6 +65,24 @@ export default function Feedback() {
         setRecentReviews(mockReviews)
     }, [])
 
+    // Pre-selection functionality
+    useEffect(() => {
+        if (location.state?.selectedBookId) {
+            const bookId = location.state.selectedBookId;
+            setSelectedBook(bookId.toString());
+
+            setMessageType('info');
+            setSubmitMessage('📖 Book pre-selected! Please rate and review this book.');
+
+            window.history.replaceState({}, document.title);
+
+            setTimeout(() => {
+                setSubmitMessage('');
+                setMessageType('');
+            }, 4000);
+        }
+    }, [location.state]);
+
     const handleRatingClick = (value) => {
         setRating(value)
     }
@@ -83,7 +103,6 @@ export default function Feedback() {
         setIsSubmitting(true)
 
         try {
-            // Simulate API call delay
             await new Promise(resolve => setTimeout(resolve, 2000))
 
             const feedbackData = {
@@ -96,7 +115,6 @@ export default function Feedback() {
 
             console.log('Feedback submitted:', feedbackData)
 
-            // Add to recent reviews for demo
             const selectedBookData = books.find(book => book.id === parseInt(selectedBook))
             const newReview = {
                 id: Date.now(),
@@ -110,7 +128,6 @@ export default function Feedback() {
 
             setRecentReviews(prev => [newReview, ...prev.slice(0, 4)])
 
-            // Reset form
             setSelectedBook('')
             setRating(0)
             setComment('')
@@ -118,7 +135,6 @@ export default function Feedback() {
             setMessageType('success')
             setSubmitMessage('🎉 Thank you for your feedback! Your review has been submitted and will help other readers.')
 
-            // Clear message after 5 seconds
             setTimeout(() => {
                 setSubmitMessage('')
                 setMessageType('')
@@ -154,6 +170,8 @@ export default function Feedback() {
         }
     }
 
+    const selectedBookInfo = selectedBook ? books.find(book => book.id === parseInt(selectedBook)) : null;
+
     return (
         <div className="page">
             <div className="container">
@@ -164,8 +182,25 @@ export default function Feedback() {
 
                 {submitMessage && (
                     <div className={`alert alert--${messageType} enhanced-alert`}>
-                        {messageType === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                        {messageType === 'success' ? <CheckCircle size={20} /> :
+                            messageType === 'error' ? <AlertCircle size={20} /> :
+                                <BookOpen size={20} />}
                         {submitMessage}
+                    </div>
+                )}
+
+                {selectedBookInfo && (
+                    <div className="selected-book-preview">
+                        <div className="book-preview-card">
+                            <div className="book-preview-image">
+                                <img src={selectedBookInfo.image} alt={selectedBookInfo.title} />
+                            </div>
+                            <div className="book-preview-info">
+                                <h3>📚 Reviewing: {selectedBookInfo.title}</h3>
+                                <p>by {selectedBookInfo.author}</p>
+                                <span className="book-category">{selectedBookInfo.category}</span>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -211,7 +246,7 @@ export default function Feedback() {
                                     <div className="form-group">
                                         <label className="form-label enhanced-label">
                                             <Star size={18} />
-                                            Rating * 
+                                            Rating *
                                             {rating > 0 && (
                                                 <span className="rating-text">
                                                     {getRatingEmoji(rating)} {getRatingText(rating)}
@@ -310,9 +345,9 @@ export default function Feedback() {
                                                 </div>
                                                 <div className="review-rating">
                                                     {[...Array(5)].map((_, i) => (
-                                                        <Star 
-                                                            key={i} 
-                                                            size={14} 
+                                                        <Star
+                                                            key={i}
+                                                            size={14}
                                                             fill={i < review.rating ? '#f59e0b' : 'none'}
                                                             color="#f59e0b"
                                                         />
@@ -346,7 +381,7 @@ export default function Feedback() {
                                             <li>Specific examples from the content</li>
                                         </ul>
                                     </div>
-                                    
+
                                     <div className="guideline-section">
                                         <h4>❌ Please Avoid:</h4>
                                         <ul className="guidelines-list negative">
@@ -397,18 +432,79 @@ export default function Feedback() {
             </div>
 
             <style>{`
+                /* Base Layout */
                 .feedback-layout {
                     display: grid;
                     grid-template-columns: 2fr 1fr;
-                    gap: var(--space-8);
+                    gap: var(--space-8, 2rem);
                     align-items: start;
                 }
 
+                /* Book Preview Section */
+                .selected-book-preview {
+                    margin-bottom: var(--space-6, 1.5rem);
+                    animation: slideInUp 0.5s ease-out;
+                }
+
+                .book-preview-card {
+                    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+                    border: 2px solid rgba(139, 92, 246, 0.2);
+                    border-radius: var(--radius-xl, 16px);
+                    padding: var(--space-4, 1rem);
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-4, 1rem);
+                    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.1);
+                }
+
+                .book-preview-image {
+                    flex-shrink: 0;
+                }
+
+                .book-preview-image img {
+                    width: 80px;
+                    height: 120px;
+                    object-fit: cover;
+                    border-radius: var(--radius-lg, 12px);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                .book-preview-info {
+                    flex: 1;
+                }
+
+                .book-preview-info h3 {
+                    font-size: var(--font-size-lg, 1.125rem);
+                    font-weight: var(--font-weight-bold, 700);
+                    color: #8b5cf6;
+                    margin-bottom: var(--space-1, 0.25rem);
+                    line-height: 1.3;
+                }
+
+                .book-preview-info p {
+                    color: var(--text-secondary, #6b7280);
+                    margin-bottom: var(--space-2, 0.5rem);
+                    font-size: var(--font-size-base, 1rem);
+                }
+
+                .book-category {
+                    background: rgba(139, 92, 246, 0.15);
+                    color: #7c3aed;
+                    padding: var(--space-1, 0.25rem) var(--space-3, 0.75rem);
+                    border-radius: var(--radius-full, 9999px);
+                    font-size: var(--font-size-xs, 0.75rem);
+                    font-weight: var(--font-weight-semibold, 600);
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+
+                /* Enhanced Cards */
                 .enhanced-card {
-                    background: linear-gradient(145deg, var(--bg-primary) 0%, rgba(255,255,255,0.8) 100%);
-                    border: 2px solid var(--color-gray-200);
+                    background: var(--bg-primary, #ffffff);
+                    border: 2px solid var(--color-gray-200, #e5e7eb);
+                    border-radius: var(--radius-xl, 16px);
                     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-                    transition: all var(--transition-base);
+                    transition: all var(--transition-base, 0.3s ease);
                 }
 
                 .enhanced-card:hover {
@@ -416,94 +512,154 @@ export default function Feedback() {
                     box-shadow: 0 12px 35px rgba(0,0,0,0.15);
                 }
 
-                .enhanced-alert {
-                    animation: slideInDown 0.5s ease-out;
-                    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+                .card__header {
+                    padding: var(--space-6, 1.5rem);
+                    border-bottom: 1px solid var(--color-gray-200, #e5e7eb);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 }
 
+                .card__body {
+                    padding: var(--space-6, 1.5rem);
+                }
+
+                /* Enhanced Alerts */
+                .enhanced-alert {
+                    animation: slideInDown 0.5s ease-out;
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3, 0.75rem);
+                    padding: var(--space-4, 1rem) var(--space-6, 1.5rem);
+                    border-radius: var(--radius-lg, 12px);
+                    margin-bottom: var(--space-6, 1.5rem);
+                    font-weight: var(--font-weight-medium, 500);
+                }
+
+                .alert--success {
+                    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+                    border: 1px solid rgba(16, 185, 129, 0.2);
+                    color: #065f46;
+                }
+
+                .alert--error {
+                    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                    color: #991b1b;
+                }
+
+                .alert--info {
+                    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+                    border: 1px solid rgba(59, 130, 246, 0.2);
+                    color: #1e40af;
+                }
+
+                /* Section Titles */
                 .section-title {
-                    font-size: var(--font-size-lg);
-                    font-weight: var(--font-weight-bold);
+                    font-size: var(--font-size-lg, 1.125rem);
+                    font-weight: var(--font-weight-bold, 700);
                     margin: 0;
                     display: flex;
                     align-items: center;
-                    gap: var(--space-3);
-                    color: var(--text-primary);
+                    gap: var(--space-3, 0.75rem);
+                    color: var(--text-primary, #1f2937);
                 }
 
                 .review-stats {
                     display: flex;
-                    gap: var(--space-2);
+                    gap: var(--space-2, 0.5rem);
                 }
 
                 .stat-badge {
                     display: flex;
                     align-items: center;
-                    gap: var(--space-1);
-                    padding: var(--space-1) var(--space-3);
-                    background: var(--color-primary-light);
-                    color: var(--color-primary-dark);
-                    border-radius: var(--radius-full);
-                    font-size: var(--font-size-xs);
-                    font-weight: var(--font-weight-semibold);
+                    gap: var(--space-1, 0.25rem);
+                    padding: var(--space-1, 0.25rem) var(--space-3, 0.75rem);
+                    background: var(--color-primary-light, rgba(59, 130, 246, 0.1));
+                    color: var(--color-primary-dark, #1e40af);
+                    border-radius: var(--radius-full, 9999px);
+                    font-size: var(--font-size-xs, 0.75rem);
+                    font-weight: var(--font-weight-semibold, 600);
+                }
+
+                /* Form Elements */
+                .form-group {
+                    margin-bottom: var(--space-6, 1.5rem);
                 }
 
                 .enhanced-label {
                     display: flex;
                     align-items: center;
-                    gap: var(--space-2);
-                    font-weight: var(--font-weight-semibold);
-                    color: var(--text-primary);
-                    margin-bottom: var(--space-3);
+                    gap: var(--space-2, 0.5rem);
+                    font-weight: var(--font-weight-semibold, 600);
+                    color: var(--text-primary, #1f2937);
+                    margin-bottom: var(--space-3, 0.75rem);
+                    font-size: var(--font-size-base, 1rem);
                 }
 
-                .enhanced-select {
-                    background: linear-gradient(145deg, var(--bg-primary) 0%, rgba(255,255,255,0.9) 100%);
-                    border: 2px solid var(--color-gray-300);
-                    padding: var(--space-4);
-                    border-radius: var(--radius-xl);
-                    font-size: var(--font-size-base);
-                    transition: all var(--transition-base);
+                .enhanced-select,
+                .enhanced-textarea {
+                    background: var(--bg-primary, #ffffff);
+                    border: 2px solid var(--color-gray-300, #d1d5db);
+                    padding: var(--space-4, 1rem);
+                    border-radius: var(--radius-xl, 16px);
+                    font-size: var(--font-size-base, 1rem);
+                    transition: all var(--transition-base, 0.3s ease);
+                    width: 100%;
+                    color: var(--text-primary, #1f2937);
                 }
 
-                .enhanced-select:focus {
-                    border-color: var(--color-primary);
+                .enhanced-select:focus,
+                .enhanced-textarea:focus {
+                    outline: none;
+                    border-color: var(--color-primary, #3b82f6);
                     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
                     transform: translateY(-1px);
                 }
 
+                .enhanced-textarea {
+                    resize: vertical;
+                    min-height: 120px;
+                    font-family: inherit;
+                }
+
+                .enhanced-textarea::placeholder {
+                    color: var(--text-muted, #9ca3af);
+                }
+
+                /* Rating System */
                 .rating-text {
-                    color: var(--color-accent);
-                    font-weight: var(--font-weight-bold);
-                    font-size: var(--font-size-base);
-                    margin-left: var(--space-3);
+                    color: var(--color-accent, #f59e0b);
+                    font-weight: var(--font-weight-bold, 700);
+                    font-size: var(--font-size-base, 1rem);
+                    margin-left: var(--space-3, 0.75rem);
                     animation: fadeIn 0.3s ease-in;
                 }
 
                 .rating-container {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-4);
-                    padding: var(--space-4);
-                    background: var(--bg-secondary);
-                    border-radius: var(--radius-xl);
-                    margin-top: var(--space-3);
+                    gap: var(--space-4, 1rem);
+                    padding: var(--space-4, 1rem);
+                    background: var(--bg-secondary, #f9fafb);
+                    border-radius: var(--radius-xl, 16px);
+                    margin-top: var(--space-3, 0.75rem);
                 }
 
                 .rating-stars {
                     display: flex;
-                    gap: var(--space-2);
+                    gap: var(--space-2, 0.5rem);
                     justify-content: center;
                 }
 
                 .rating-star {
                     background: none;
                     border: none;
-                    color: var(--color-gray-300);
+                    color: var(--color-gray-300, #d1d5db);
                     cursor: pointer;
-                    padding: var(--space-2);
-                    border-radius: var(--radius-lg);
-                    transition: all var(--transition-fast);
+                    padding: var(--space-2, 0.5rem);
+                    border-radius: var(--radius-lg, 12px);
+                    transition: all var(--transition-fast, 0.15s ease);
                     position: relative;
                 }
 
@@ -513,7 +669,7 @@ export default function Feedback() {
                 }
 
                 .rating-star--active {
-                    color: var(--color-accent);
+                    color: var(--color-accent, #f59e0b);
                     transform: scale(1.1);
                 }
 
@@ -522,49 +678,41 @@ export default function Feedback() {
                 }
 
                 .rating-number {
-                    font-size: var(--font-size-2xl);
-                    font-weight: var(--font-weight-bold);
-                    color: var(--color-accent);
+                    font-size: var(--font-size-2xl, 1.5rem);
+                    font-weight: var(--font-weight-bold, 700);
+                    color: var(--color-accent, #f59e0b);
                 }
 
-                .enhanced-textarea {
-                    background: linear-gradient(145deg, var(--bg-primary) 0%, rgba(255,255,255,0.9) 100%);
-                    border: 2px solid var(--color-gray-300);
-                    padding: var(--space-4);
-                    border-radius: var(--radius-xl);
-                    resize: vertical;
-                    min-height: 120px;
-                    transition: all var(--transition-base);
-                    font-family: inherit;
-                }
-
-                .enhanced-textarea:focus {
-                    border-color: var(--color-primary);
-                    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-                    transform: translateY(-1px);
-                }
-
+                /* Form Help */
                 .enhanced-help {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     flex-wrap: wrap;
-                    gap: var(--space-2);
-                    margin-top: var(--space-2);
-                    font-size: var(--font-size-sm);
-                    color: var(--text-muted);
+                    gap: var(--space-2, 0.5rem);
+                    margin-top: var(--space-2, 0.5rem);
+                    font-size: var(--font-size-sm, 0.875rem);
+                    color: var(--text-muted, #6b7280);
                 }
 
+                /* Submit Button */
                 .enhanced-submit {
                     width: 100%;
-                    padding: var(--space-4) var(--space-6);
-                    font-size: var(--font-size-lg);
-                    font-weight: var(--font-weight-bold);
-                    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+                    padding: var(--space-4, 1rem) var(--space-6, 1.5rem);
+                    font-size: var(--font-size-lg, 1.125rem);
+                    font-weight: var(--font-weight-bold, 700);
+                    background: linear-gradient(135deg, var(--color-primary, #3b82f6) 0%, var(--color-primary-dark, #1d4ed8) 100%);
                     border: none;
+                    border-radius: var(--radius-xl, 16px);
+                    color: white;
+                    cursor: pointer;
                     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-                    transition: all var(--transition-base);
-                    margin-top: var(--space-6);
+                    transition: all var(--transition-base, 0.3s ease);
+                    margin-top: var(--space-6, 1.5rem);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: var(--space-2, 0.5rem);
                 }
 
                 .enhanced-submit:hover:not(:disabled) {
@@ -572,91 +720,100 @@ export default function Feedback() {
                     box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
                 }
 
+                .enhanced-submit:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                    transform: none;
+                }
+
+                /* Reviews Section */
                 .recent-reviews {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-4);
+                    gap: var(--space-4, 1rem);
                 }
 
                 .review-item {
-                    padding: var(--space-4);
-                    background: var(--bg-secondary);
-                    border-radius: var(--radius-lg);
-                    border: 1px solid var(--color-gray-200);
-                    transition: all var(--transition-base);
+                    padding: var(--space-4, 1rem);
+                    background: var(--bg-secondary, #f9fafb);
+                    border-radius: var(--radius-lg, 12px);
+                    border: 1px solid var(--color-gray-200, #e5e7eb);
+                    transition: all var(--transition-base, 0.3s ease);
                 }
 
                 .review-item:hover {
                     transform: translateX(4px);
-                    box-shadow: var(--shadow-md);
+                    box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
                 }
 
                 .review-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: start;
-                    margin-bottom: var(--space-2);
+                    margin-bottom: var(--space-2, 0.5rem);
                 }
 
                 .reviewer-info {
                     display: flex;
-                    gap: var(--space-2);
+                    gap: var(--space-2, 0.5rem);
                     align-items: center;
                 }
 
                 .reviewer-avatar {
-                    background: var(--color-primary-light);
-                    color: var(--color-primary-dark);
-                    padding: var(--space-1);
-                    border-radius: var(--radius-full);
+                    background: var(--color-primary-light, rgba(59, 130, 246, 0.1));
+                    color: var(--color-primary-dark, #1e40af);
+                    padding: var(--space-1, 0.25rem);
+                    border-radius: var(--radius-full, 9999px);
                 }
 
                 .reviewer-name {
-                    font-weight: var(--font-weight-semibold);
-                    font-size: var(--font-size-sm);
-                    color: var(--text-primary);
+                    font-weight: var(--font-weight-semibold, 600);
+                    font-size: var(--font-size-sm, 0.875rem);
+                    color: var(--text-primary, #1f2937);
                 }
 
                 .review-date {
                     display: flex;
                     align-items: center;
-                    gap: var(--space-1);
-                    font-size: var(--font-size-xs);
-                    color: var(--text-muted);
+                    gap: var(--space-1, 0.25rem);
+                    font-size: var(--font-size-xs, 0.75rem);
+                    color: var(--text-muted, #6b7280);
                 }
 
                 .review-book {
-                    font-weight: var(--font-weight-medium);
-                    color: var(--color-primary);
-                    font-size: var(--font-size-sm);
-                    margin-bottom: var(--space-2);
+                    font-weight: var(--font-weight-medium, 500);
+                    color: var(--color-primary, #3b82f6);
+                    font-size: var(--font-size-sm, 0.875rem);
+                    margin-bottom: var(--space-2, 0.5rem);
                 }
 
                 .review-comment {
-                    color: var(--text-secondary);
-                    font-size: var(--font-size-sm);
-                    line-height: var(--line-height-relaxed);
-                    margin-bottom: var(--space-2);
+                    color: var(--text-secondary, #6b7280);
+                    font-size: var(--font-size-sm, 0.875rem);
+                    line-height: var(--line-height-relaxed, 1.625);
+                    margin-bottom: var(--space-2, 0.5rem);
                 }
 
                 .review-helpful {
                     display: flex;
                     align-items: center;
-                    gap: var(--space-1);
-                    font-size: var(--font-size-xs);
-                    color: var(--color-success);
+                    gap: var(--space-1, 0.25rem);
+                    font-size: var(--font-size-xs, 0.75rem);
+                    color: var(--color-success, #10b981);
                 }
 
+                /* Guidelines Section */
                 .guidelines {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-4);
+                    gap: var(--space-4, 1rem);
                 }
 
                 .guideline-section h4 {
-                    font-size: var(--font-size-base);
-                    font-weight: var(--font-weight-semibold);
-                    margin-bottom: var(--space-2);
+                    font-size: var(--font-size-base, 1rem);
+                    font-weight: var(--font-weight-semibold, 600);
+                    margin-bottom: var(--space-2, 0.5rem);
+                    color: var(--text-primary, #1f2937);
                 }
 
                 .guidelines-list {
@@ -665,21 +822,21 @@ export default function Feedback() {
                     margin: 0;
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-1);
+                    gap: var(--space-1, 0.25rem);
                 }
 
                 .guidelines-list li {
-                    font-size: var(--font-size-sm);
-                    color: var(--text-secondary);
-                    padding: var(--space-1) 0;
-                    border-radius: var(--radius-base);
-                    padding-left: var(--space-3);
+                    font-size: var(--font-size-sm, 0.875rem);
+                    color: var(--text-secondary, #6b7280);
+                    padding: var(--space-1, 0.25rem) 0;
+                    border-radius: var(--radius-base, 8px);
+                    padding-left: var(--space-3, 0.75rem);
                     position: relative;
                 }
 
                 .positive li::before {
                     content: '✓';
-                    color: var(--color-success);
+                    color: var(--color-success, #10b981);
                     font-weight: bold;
                     position: absolute;
                     left: 0;
@@ -687,58 +844,71 @@ export default function Feedback() {
 
                 .negative li::before {
                     content: '✗';
-                    color: var(--color-danger);
+                    color: var(--color-danger, #ef4444);
                     font-weight: bold;
                     position: absolute;
                     left: 0;
                 }
 
+                /* Benefits Section */
                 .benefits {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-4);
+                    gap: var(--space-4, 1rem);
                 }
 
                 .benefit-item {
                     display: flex;
-                    gap: var(--space-3);
+                    gap: var(--space-3, 0.75rem);
                     align-items: start;
                 }
 
                 .benefit-icon {
-                    font-size: var(--font-size-xl);
+                    font-size: var(--font-size-xl, 1.25rem);
                     width: 40px;
                     height: 40px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    background: var(--bg-primary);
-                    border-radius: var(--radius-lg);
-                    border: 2px solid var(--color-gray-200);
+                    background: var(--bg-primary, #ffffff);
+                    border-radius: var(--radius-lg, 12px);
+                    border: 2px solid var(--color-gray-200, #e5e7eb);
                 }
 
                 .benefit-item h4 {
-                    font-size: var(--font-size-base);
-                    font-weight: var(--font-weight-semibold);
-                    margin-bottom: var(--space-1);
-                    color: var(--text-primary);
+                    font-size: var(--font-size-base, 1rem);
+                    font-weight: var(--font-weight-semibold, 600);
+                    margin-bottom: var(--space-1, 0.25rem);
+                    color: var(--text-primary, #1f2937);
                 }
 
                 .benefit-item p {
-                    color: var(--text-secondary);
-                    font-size: var(--font-size-sm);
-                    line-height: var(--line-height-relaxed);
+                    color: var(--text-secondary, #6b7280);
+                    font-size: var(--font-size-sm, 0.875rem);
+                    line-height: var(--line-height-relaxed, 1.625);
                     margin: 0;
                 }
 
                 .benefits-card {
-                    background: linear-gradient(135deg, var(--color-primary-light) 0%, rgba(59, 130, 246, 0.05) 100%);
+                    background: linear-gradient(135deg, var(--color-primary-light, rgba(59, 130, 246, 0.1)) 0%, rgba(59, 130, 246, 0.05) 100%);
                 }
 
+                /* Animations */
                 @keyframes slideInDown {
                     from {
                         opacity: 0;
                         transform: translateY(-20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                @keyframes slideInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
                     }
                     to {
                         opacity: 1;
@@ -751,16 +921,183 @@ export default function Feedback() {
                     to { opacity: 1; }
                 }
 
+                /* Spinner */
+                .spinner--sm {
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    border-top-color: white;
+                    animation: spin 1s linear infinite;
+                }
+
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+
+                /* DARK MODE STYLES */
+                :global([data-theme="dark"]) .enhanced-card {
+                    background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+                    border-color: #374151;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                }
+
+                :global([data-theme="dark"]) .card__header {
+                    border-bottom-color: #374151;
+                }
+
+                :global([data-theme="dark"]) .section-title {
+                    color: #f3f4f6;
+                }
+
+                :global([data-theme="dark"]) .enhanced-label {
+                    color: #f3f4f6;
+                }
+
+                :global([data-theme="dark"]) .enhanced-select,
+                :global([data-theme="dark"]) .enhanced-textarea {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-color: rgba(255, 255, 255, 0.2);
+                    color: #f3f4f6;
+                }
+
+                :global([data-theme="dark"]) .enhanced-select:focus,
+                :global([data-theme="dark"]) .enhanced-textarea:focus {
+                    background: rgba(255, 255, 255, 0.15);
+                    border-color: rgba(139, 92, 246, 0.6);
+                    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+                }
+
+                :global([data-theme="dark"]) .enhanced-select option {
+                    background: #1f2937;
+                    color: #f3f4f6;
+                }
+
+                :global([data-theme="dark"]) .enhanced-textarea::placeholder {
+                    color: rgba(255, 255, 255, 0.5);
+                }
+
+                :global([data-theme="dark"]) .rating-container {
+                    background: rgba(255, 255, 255, 0.05);
+                }
+
+                :global([data-theme="dark"]) .enhanced-help {
+                    color: rgba(255, 255, 255, 0.6);
+                }
+
+                :global([data-theme="dark"]) .review-item {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-color: rgba(255, 255, 255, 0.1);
+                }
+
+                :global([data-theme="dark"]) .reviewer-name {
+                    color: #f3f4f6;
+                }
+
+                :global([data-theme="dark"]) .review-date {
+                    color: rgba(255, 255, 255, 0.6);
+                }
+
+                :global([data-theme="dark"]) .review-book {
+                    color: #8b5cf6;
+                }
+
+                :global([data-theme="dark"]) .review-comment {
+                    color: rgba(255, 255, 255, 0.7);
+                }
+
+                :global([data-theme="dark"]) .guideline-section h4 {
+                    color: #f3f4f6;
+                }
+
+                :global([data-theme="dark"]) .guidelines-list li {
+                    color: rgba(255, 255, 255, 0.7);
+                }
+
+                :global([data-theme="dark"]) .benefit-item h4 {
+                    color: #f3f4f6;
+                }
+
+                :global([data-theme="dark"]) .benefit-item p {
+                    color: rgba(255, 255, 255, 0.7);
+                }
+
+                :global([data-theme="dark"]) .benefit-icon {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-color: rgba(255, 255, 255, 0.2);
+                }
+
+                :global([data-theme="dark"]) .reviewer-avatar {
+                    background: rgba(139, 92, 246, 0.2);
+                    color: #c4b5fd;
+                }
+
+                :global([data-theme="dark"]) .stat-badge {
+                    background: rgba(139, 92, 246, 0.2);
+                    color: #c4b5fd;
+                }
+
+                :global([data-theme="dark"]) .book-preview-card {
+                    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+                    border-color: rgba(139, 92, 246, 0.3);
+                }
+
+                :global([data-theme="dark"]) .book-preview-info h3 {
+                    color: #c4b5fd;
+                }
+
+                :global([data-theme="dark"]) .book-preview-info p {
+                    color: rgba(255, 255, 255, 0.7);
+                }
+
+                :global([data-theme="dark"]) .book-category {
+                    background: rgba(139, 92, 246, 0.3);
+                    color: #c4b5fd;
+                }
+
+                :global([data-theme="dark"]) .alert--success {
+                    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+                    border-color: rgba(16, 185, 129, 0.3);
+                    color: #6ee7b7;
+                }
+
+                :global([data-theme="dark"]) .alert--error {
+                    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%);
+                    border-color: rgba(239, 68, 68, 0.3);
+                    color: #fca5a5;
+                }
+
+                :global([data-theme="dark"]) .alert--info {
+                    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
+                    border-color: rgba(59, 130, 246, 0.3);
+                    color: #93c5fd;
+                }
+
+                :global([data-theme="dark"]) .benefits-card {
+                    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+                }
+
+                /* Responsive Design */
                 @media (max-width: 1024px) {
                     .feedback-layout {
                         grid-template-columns: 1fr;
-                        gap: var(--space-6);
+                        gap: var(--space-6, 1.5rem);
+                    }
+
+                    .book-preview-card {
+                        flex-direction: column;
+                        text-align: center;
+                    }
+
+                    .book-preview-image img {
+                        width: 100px;
+                        height: 150px;
                     }
                 }
 
                 @media (max-width: 768px) {
                     .rating-stars {
-                        gap: var(--space-1);
+                        gap: var(--space-1, 0.25rem);
                     }
 
                     .enhanced-help {
@@ -770,7 +1107,26 @@ export default function Feedback() {
 
                     .review-header {
                         flex-direction: column;
-                        gap: var(--space-2);
+                        gap: var(--space-2, 0.5rem);
+                    }
+
+                    .book-preview-card {
+                        padding: var(--space-3, 0.75rem);
+                        gap: var(--space-3, 0.75rem);
+                    }
+
+                    .book-preview-image img {
+                        width: 80px;
+                        height: 120px;
+                    }
+
+                    .book-preview-info h3 {
+                        font-size: var(--font-size-base, 1rem);
+                    }
+
+                    .card__header,
+                    .card__body {
+                        padding: var(--space-4, 1rem);
                     }
                 }
             `}</style>

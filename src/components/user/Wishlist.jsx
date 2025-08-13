@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useWishlist } from '../../context/WishlistContext'
 import { useCart } from '../../hooks/useCart'
 import { useAuth } from '../../hooks/useAuth'
-import { Heart, ShoppingCart, Trash2, Eye, Package } from 'lucide-react'
+import { Heart, ShoppingCart, Trash2, Eye, Package, ArrowLeft } from 'lucide-react'
 import LoadingSpinner from '../common/LoadingSpinner'
 
 const Wishlist = () => {
@@ -124,15 +124,36 @@ const Wishlist = () => {
         {wishlistItems.length === 0 ? (
           <div className="wishlist-empty">
             <div className="empty-state">
-              <Heart className="empty-state__icon" size={64} />
-              <h2 className="empty-state__title">Your wishlist is empty</h2>
-              <p className="empty-state__description">
-                Save books you're interested in to your wishlist and come back to them later.
-              </p>
-              <Link to="/books" className="btn btn--primary btn--lg">
-                <Package size={20} />
-                Browse Books
-              </Link>
+              <div className="empty-state__background">
+                <Heart className="empty-state__icon" size={80} />
+              </div>
+              <div className="empty-state__content">
+                <h2 className="empty-state__title">Your wishlist feels lonely!</h2>
+                <p className="empty-state__description">
+                  Add some amazing books to make it happy. Browse our collection and discover your next great read.
+                </p>
+                <div className="empty-state__suggestions">
+                  <h3 className="suggestions__title">Why not try:</h3>
+                  <div className="suggestions__grid">
+                    <Link to="/books" className="suggestion-card">
+                      <Package className="suggestion-card__icon" size={24} />
+                      <span className="suggestion-card__text">Browse All Books</span>
+                    </Link>
+                    <Link to="/categories" className="suggestion-card">
+                      <Eye className="suggestion-card__icon" size={24} />
+                      <span className="suggestion-card__text">Explore Categories</span>
+                    </Link>
+                    <Link to="/wishlist" className="suggestion-card suggestion-card--active">
+                      <Heart className="suggestion-card__icon" size={24} />
+                      <span className="suggestion-card__text">Check Wishlist</span>
+                    </Link>
+                  </div>
+                </div>
+                <Link to="/books" className="btn btn--primary btn--lg btn--cta">
+                  <ArrowLeft size={20} />
+                  Start Shopping
+                </Link>
+              </div>
             </div>
           </div>
         ) : (
@@ -252,6 +273,8 @@ const Wishlist = () => {
           text-decoration: none;
           background: none;
           white-space: nowrap;
+          position: relative;
+          overflow: hidden;
         }
 
         .btn--primary {
@@ -306,8 +329,21 @@ const Wishlist = () => {
         }
 
         .btn--lg {
-          padding: 1rem 2rem;
+          padding: 1.25rem 2.5rem;
           font-size: 1rem;
+          border-radius: 1rem;
+        }
+
+        .btn--cta {
+          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+          font-weight: 600;
+        }
+
+        .btn--cta:hover:not(:disabled) {
+          background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+          transform: translateY(-3px);
+          box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5);
         }
 
         .btn--sm {
@@ -324,30 +360,50 @@ const Wishlist = () => {
           transform: none;
         }
 
-        /* Empty state */
+        /* Enhanced Empty state */
         .wishlist-empty {
           display: flex;
           justify-content: center;
           align-items: center;
-          min-height: 400px;
-          padding: var(--space-16, 4rem);
+          min-height: 60vh;
+          padding: var(--space-8, 2rem);
         }
 
         .empty-state {
           text-align: center;
-          max-width: 400px;
+          max-width: 600px;
+          width: 100%;
+        }
+
+        .empty-state__background {
+          position: relative;
+          margin-bottom: var(--space-8, 2rem);
+          display: flex;
+          justify-content: center;
         }
 
         .empty-state__icon {
-          color: var(--color-gray-400, #9ca3af);
-          margin-bottom: var(--space-6, 1.5rem);
+          color: var(--color-gray-300, #d1d5db);
+          filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+          animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+
+        .empty-state__content {
+          margin-bottom: var(--space-8, 2rem);
         }
 
         .empty-state__title {
-          font-size: 1.875rem;
-          font-weight: 600;
+          font-size: 2.25rem;
+          font-weight: 700;
           color: var(--text-primary, #1f2937);
           margin: 0 0 var(--space-4, 1rem);
+          line-height: 1.2;
+          letter-spacing: -0.025em;
         }
 
         .empty-state__description {
@@ -355,6 +411,93 @@ const Wishlist = () => {
           color: var(--text-muted, #6b7280);
           margin: 0 0 var(--space-8, 2rem);
           line-height: 1.6;
+          max-width: 480px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        /* Suggestions section */
+        .empty-state__suggestions {
+          margin-bottom: var(--space-10, 2.5rem);
+        }
+
+        .suggestions__title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: var(--text-primary, #1f2937);
+          margin: 0 0 var(--space-6, 1.5rem);
+        }
+
+        .suggestions__grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: var(--space-4, 1rem);
+          margin-bottom: var(--space-8, 2rem);
+        }
+
+        .suggestion-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-3, 0.75rem);
+          padding: var(--space-6, 1.5rem);
+          background: var(--bg-secondary, #f8fafc);
+          border: 2px solid var(--color-gray-200, #e5e7eb);
+          border-radius: 1rem;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .suggestion-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .suggestion-card:hover::before {
+          opacity: 1;
+        }
+
+        .suggestion-card:hover {
+          border-color: var(--color-primary, #3b82f6);
+          transform: translateY(-4px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-card--active {
+          border-color: #e91e63;
+          background: rgba(233, 30, 99, 0.05);
+        }
+
+        .suggestion-card__icon {
+          color: var(--color-primary, #3b82f6);
+          position: relative;
+          z-index: 1;
+          transition: transform 0.3s ease;
+        }
+
+        .suggestion-card:hover .suggestion-card__icon {
+          transform: scale(1.1);
+        }
+
+        .suggestion-card--active .suggestion-card__icon {
+          color: #e91e63;
+        }
+
+        .suggestion-card__text {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--text-primary, #1f2937);
+          position: relative;
+          z-index: 1;
         }
 
         /* Wishlist grid */
@@ -497,6 +640,79 @@ const Wishlist = () => {
           color: rgba(102, 126, 234, 0.9);
         }
 
+        :global([data-theme="dark"]) .empty-state__icon {
+          color: rgba(255, 255, 255, 0.2);
+        }
+
+        :global([data-theme="dark"]) .empty-state__title {
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        :global([data-theme="dark"]) .empty-state__description {
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        :global([data-theme="dark"]) .suggestions__title {
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        :global([data-theme="dark"]) .suggestion-card {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        :global([data-theme="dark"]) .suggestion-card:hover {
+          border-color: rgba(102, 126, 234, 0.5);
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        :global([data-theme="dark"]) .suggestion-card--active {
+          border-color: #e91e63;
+          background: rgba(233, 30, 99, 0.1);
+        }
+
+        :global([data-theme="dark"]) .suggestion-card__icon {
+          color: rgba(102, 126, 234, 0.8);
+        }
+
+        :global([data-theme="dark"]) .suggestion-card--active .suggestion-card__icon {
+          color: #e91e63;
+        }
+
+        :global([data-theme="dark"]) .suggestion-card__text {
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        :global([data-theme="dark"]) .wishlist-item {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        :global([data-theme="dark"]) .wishlist-item:hover {
+          border-color: rgba(102, 126, 234, 0.5);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        :global([data-theme="dark"]) .wishlist-item__image {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 100%);
+        }
+
+        :global([data-theme="dark"]) .wishlist-item__title {
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        :global([data-theme="dark"]) .wishlist-item__title:hover {
+          color: rgba(102, 126, 234, 0.8);
+        }
+
+        :global([data-theme="dark"]) .wishlist-item__author {
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        :global([data-theme="dark"]) .price {
+          color: #10b981;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
           .wishlist-header__content {
@@ -542,6 +758,21 @@ const Wishlist = () => {
           .empty-state {
             padding: 0 var(--space-4, 1rem);
           }
+
+          .empty-state__title {
+            font-size: 1.875rem;
+          }
+
+          .suggestions__grid {
+            grid-template-columns: 1fr;
+            gap: var(--space-3, 0.75rem);
+          }
+
+          .suggestion-card {
+            flex-direction: row;
+            text-align: left;
+            padding: var(--space-4, 1rem);
+          }
         }
 
         @media (max-width: 480px) {
@@ -551,6 +782,14 @@ const Wishlist = () => {
 
           .wishlist-item__actions .btn {
             width: 100%;
+          }
+
+          .empty-state__title {
+            font-size: 1.5rem;
+          }
+
+          .empty-state__description {
+            font-size: 1rem;
           }
         }
       `}</style>

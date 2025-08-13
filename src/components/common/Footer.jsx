@@ -37,7 +37,7 @@ export default function Footer() {
             <ul className="footer__links">
               <li><Link to="/books" className="footer__link">Browse Books</Link></li>
               <li><Link to="/categories" className="footer__link">Categories</Link></li>
-              <li><Link to="/feedback" className="footer__link">Feedback</Link></li>
+              {/* <li><Link to="/feedback" className="footer__link">Feedback</Link></li> */}
               <li><Link to="/orders" className="footer__link">Order History</Link></li>
             </ul>
           </div>
