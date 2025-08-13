@@ -108,7 +108,7 @@ export default function Navbar() {
                     BookStore
                 </Link>
 
-                {/* Search Bar - Only show for users, not admins */}
+                {/* Search Bar - Only show for users, not admins
                 {!isAdmin && (
                     <form onSubmit={handleSearch} className="navbar__search">
                         <div className="search-input">
@@ -122,7 +122,7 @@ export default function Navbar() {
                             />
                         </div>
                     </form>
-                )}
+                )} */}
 
                 {/* Mobile Menu Toggle */}
                 <button
@@ -344,42 +344,42 @@ export default function Navbar() {
                     transform: scale(1.05);
                 }
 
-                .navbar__search {
-                    flex: 1;
-                    max-width: 400px;
-                    margin: 0 var(--space-4);
-                }
+                // .navbar__search {
+                //     flex: 1;
+                //     max-width: 400px;
+                //     margin: 0 var(--space-4);
+                // }
 
-                .search-input {
-                    position: relative;
-                }
+                // .search-input {
+                //     position: relative;
+                // }
 
-                .search-icon {
-                    position: absolute;
-                    left: var(--space-3);
-                    top: 50%;
-                    transform: translateY(-50%);
-                    color: var(--text-muted);
-                    z-index: 1;
-                }
+                // .search-icon {
+                //     position: absolute;
+                //     left: var(--space-3);
+                //     top: 50%;
+                //     transform: translateY(-50%);
+                //     color: var(--text-muted);
+                //     z-index: 1;
+                // }
 
-                .search-field {
-                    width: 100%;
-                    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-10);
-                    border: 2px solid var(--color-gray-200);
-                    border-radius: var(--radius-full);
-                    background: var(--bg-secondary);
-                    font-size: var(--font-size-sm);
-                    color: var(--text-primary);
-                    transition: all var(--transition-base);
-                }
+                // .search-field {
+                //     width: 100%;
+                //     padding: var(--space-2) var(--space-3) var(--space-2) var(--space-10);
+                //     border: 2px solid var(--color-gray-200);
+                //     border-radius: var(--radius-full);
+                //     background: var(--bg-secondary);
+                //     font-size: var(--font-size-sm);
+                //     color: var(--text-primary);
+                //     transition: all var(--transition-base);
+                // }
 
-                .search-field:focus {
-                    outline: none;
-                    border-color: var(--color-primary);
-                    background: var(--bg-primary);
-                    box-shadow: 0 0 0 3px var(--color-primary-light);
-                }
+                // .search-field:focus {
+                //     outline: none;
+                //     border-color: var(--color-primary);
+                //     background: var(--bg-primary);
+                //     box-shadow: 0 0 0 3px var(--color-primary-light);
+                // }
 
                 .navbar__mobile-toggle {
                     display: none;

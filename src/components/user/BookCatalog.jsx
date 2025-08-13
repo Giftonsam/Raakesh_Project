@@ -630,13 +630,14 @@ export default function BookCatalog() {
           justify-content: center;
         }
 
-        /* View toggle buttons */
+        /* View toggle buttons - Light mode compatible */
         .view-toggle {
           display: flex;
-          background: rgba(255, 255, 255, 0.1);
+          background: var(--bg-secondary, #f8fafc);
           border-radius: 12px;
           padding: 4px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid var(--color-gray-200, #e5e7eb);
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .view-button {
@@ -646,15 +647,16 @@ export default function BookCatalog() {
           border-radius: 8px;
           cursor: pointer;
           transition: all 0.3s ease;
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--text-muted, #6b7280);
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
         .view-button:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.9);
+          background: var(--bg-primary, #ffffff);
+          color: var(--text-primary, #1f2937);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .view-button.active {
@@ -663,7 +665,7 @@ export default function BookCatalog() {
           box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
-        /* Enhanced form inputs */
+        /* Enhanced form inputs - Light mode compatible */
         .search-bar {
           position: relative;
           display: flex;
@@ -671,56 +673,59 @@ export default function BookCatalog() {
         }
 
         .search-bar__input {
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: var(--bg-primary, #ffffff);
+          border: 1px solid var(--color-gray-200, #e5e7eb);
           border-radius: 12px;
           padding: 12px 16px 12px 48px;
-          color: white;
+          color: var(--text-primary, #1f2937);
           font-size: 0.875rem;
           transition: all 0.3s ease;
           min-width: 280px;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .search-bar__input::placeholder {
-          color: rgba(255, 255, 255, 0.6);
+          color: var(--text-muted, #6b7280);
         }
 
         .search-bar__input:focus {
           outline: none;
-          background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(102, 126, 234, 0.5);
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          background: var(--bg-primary, #ffffff);
+          border-color: var(--color-primary, #3b82f6);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .search-bar__icon {
           position: absolute;
           left: 16px;
-          color: rgba(255, 255, 255, 0.6);
+          color: var(--text-muted, #6b7280);
           z-index: 1;
         }
 
         .form-input {
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: var(--bg-primary, #ffffff);
+          border: 1px solid var(--color-gray-200, #e5e7eb);
           border-radius: 12px;
           padding: 12px 16px;
-          color: white;
+          color: var(--text-primary, #1f2937);
           font-size: 0.875rem;
           transition: all 0.3s ease;
           cursor: pointer;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .form-input:focus {
           outline: none;
-          background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(102, 126, 234, 0.5);
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          background: var(--bg-primary, #ffffff);
+          border-color: var(--color-primary, #3b82f6);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .form-input option {
-          background: #1f2937;
-          color: white;
+          background: var(--bg-primary, #ffffff);
+          color: var(--text-primary, #1f2937);
         }
+
         .error-container-centered {
           display: flex;
           flex-direction: column;
@@ -743,6 +748,11 @@ export default function BookCatalog() {
           gap: var(--space-4, 1.5rem);
           margin-bottom: var(--space-6, 2rem);
           flex-wrap: wrap;
+          padding: var(--space-6, 2rem);
+          background: var(--bg-secondary, #f8fafc);
+          border-radius: 16px;
+          border: 1px solid var(--color-gray-100, #f3f4f6);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .controls-left {
@@ -758,10 +768,36 @@ export default function BookCatalog() {
           gap: var(--space-4, 1.5rem);
         }
 
+        .results-count {
+          font-size: 0.875rem;
+          color: var(--text-muted, #6b7280);
+          font-weight: 500;
+          background: var(--bg-primary, #ffffff);
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid var(--color-gray-200, #e5e7eb);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .results-info {
+          margin-bottom: var(--space-4, 1.5rem);
+          padding: var(--space-3, 1rem) var(--space-4, 1.5rem);
+          background: var(--bg-secondary, #f8fafc);
+          border-radius: 8px;
+          border-left: 4px solid var(--color-primary, #3b82f6);
+          font-size: 0.875rem;
+          color: var(--text-muted, #6b7280);
+        }
+
         .no-results {
           text-align: center;
           padding: var(--space-16, 4rem);
           color: var(--text-muted, #6b7280);
+        }
+
+        .no-results svg {
+          color: var(--color-gray-400, #9ca3af);
+          margin-bottom: var(--space-4, 1.5rem);
         }
 
         /* Responsive design */
@@ -784,6 +820,7 @@ export default function BookCatalog() {
           .catalog-controls {
             flex-direction: column;
             align-items: stretch;
+            padding: var(--space-4, 1.5rem);
           }
 
           .controls-left {
@@ -794,6 +831,79 @@ export default function BookCatalog() {
           .controls-right {
             justify-content: space-between;
           }
+
+          .search-bar__input {
+            min-width: 100%;
+          }
+        }
+
+        /* Dark mode overrides */
+        :global([data-theme="dark"]) .view-toggle {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        :global([data-theme="dark"]) .view-button {
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        :global([data-theme="dark"]) .view-button:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        :global([data-theme="dark"]) .search-bar__input {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+
+        :global([data-theme="dark"]) .search-bar__input::placeholder {
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        :global([data-theme="dark"]) .search-bar__input:focus {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(102, 126, 234, 0.5);
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        :global([data-theme="dark"]) .search-bar__icon {
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        :global([data-theme="dark"]) .form-input {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+
+        :global([data-theme="dark"]) .form-input:focus {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(102, 126, 234, 0.5);
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        :global([data-theme="dark"]) .form-input option {
+          background: #1f2937;
+          color: white;
+        }
+
+        :global([data-theme="dark"]) .catalog-controls {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        :global([data-theme="dark"]) .results-count {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        :global([data-theme="dark"]) .results-info {
+          background: rgba(255, 255, 255, 0.05);
+          border-left-color: rgba(102, 126, 234, 0.8);
+          color: rgba(255, 255, 255, 0.7);
         }
       `}</style>
     </div>

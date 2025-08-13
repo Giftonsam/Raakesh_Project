@@ -242,7 +242,7 @@ const DEMO_BOOKS = [
 ]
 
 const DEMO_CATEGORIES = [
-    { id: 'all', name: 'All Books', count: DEMO_BOOKS.length },
+    // { id: 'all', name: 'All Books', count: DEMO_BOOKS.length },
     { id: 'programming', name: 'Programming', count: DEMO_BOOKS.filter(b => b.category === 'Programming').length },
     { id: 'web-development', name: 'Web Development', count: DEMO_BOOKS.filter(b => b.category === 'Web Development').length },
     { id: 'software-engineering', name: 'Software Engineering', count: DEMO_BOOKS.filter(b => b.category === 'Software Engineering').length },

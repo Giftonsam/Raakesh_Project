@@ -64,277 +64,165 @@ const Wishlist = () => {
   }
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'INR'
     }).format(price)
   }
 
   if (wishlistLoading && wishlistItems.length === 0) {
     return (
-      <div className="wishlist-page">
-        <div className="container">
-          <LoadingSpinner />
-        </div>
-      </div>
+      <LoadingSpinner
+        fullScreen={true}
+        text="Loading your wishlist..."
+        size="lg"
+        color="primary"
+      />
     )
   }
 
   return (
-    <>
-      <div className="wishlist-page">
-        <div className="container">
-          {/* Header */}
-          <div className="wishlist-header">
-            <div className="wishlist-header__content">
-              <div className="wishlist-header__info">
-                <Heart className="wishlist-header__icon" size={32} />
-                <div>
-                  <h1 className="wishlist-header__title">My Wishlist</h1>
-                  <p className="wishlist-header__subtitle">
-                    {wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'} saved for later
-                  </p>
-                </div>
+    <div className="page">
+      <div className="container">
+        {/* Header */}
+        <div className="page__header">
+          <div className="wishlist-header__content">
+            <div className="wishlist-header__info">
+              <Heart className="wishlist-header__icon" size={32} />
+              <div>
+                <h1 className="page__title">My Wishlist</h1>
+                <p className="page__subtitle">
+                  {wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'} saved for later
+                </p>
               </div>
+            </div>
 
-              {wishlistItems.length > 0 && (
-                <div className="wishlist-header__actions">
-                  <button
-                    onClick={handleAddAllToCart}
-                    disabled={cartLoading}
-                    className="btn btn--primary"
-                  >
-                    <ShoppingCart size={18} />
-                    Add All to Cart
-                  </button>
-                  <button
-                    onClick={handleClearWishlist}
-                    disabled={wishlistLoading}
-                    className="btn btn--danger btn--outline"
-                  >
-                    <Trash2 size={18} />
-                    Clear All
-                  </button>
-                </div>
-              )}
+            {wishlistItems.length > 0 && (
+              <div className="wishlist-header__actions">
+                <button
+                  onClick={handleAddAllToCart}
+                  disabled={cartLoading}
+                  className="btn btn--primary"
+                >
+                  <ShoppingCart size={18} />
+                  Add All to Cart
+                </button>
+                <button
+                  onClick={handleClearWishlist}
+                  disabled={wishlistLoading}
+                  className="btn btn--danger btn--outline"
+                >
+                  <Trash2 size={18} />
+                  Clear All
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Wishlist Content */}
+        {wishlistItems.length === 0 ? (
+          <div className="wishlist-empty">
+            <div className="empty-state">
+              <Heart className="empty-state__icon" size={64} />
+              <h2 className="empty-state__title">Your wishlist is empty</h2>
+              <p className="empty-state__description">
+                Save books you're interested in to your wishlist and come back to them later.
+              </p>
+              <Link to="/books" className="btn btn--primary btn--lg">
+                <Package size={20} />
+                Browse Books
+              </Link>
             </div>
           </div>
+        ) : (
+          <div className="wishlist-grid">
+            {wishlistItems.map((item) => (
+              <div key={item.id} className="wishlist-item">
+                <div className="wishlist-item__content">
+                  {/* Image */}
+                  <div className="wishlist-item__image">
+                    <Link to={`/books/${item.id}`}>
+                      <img
+                        src={item.image || 'https://via.placeholder.com/300x400/e2e8f0/64748b?text=No+Image'}
+                        alt={item.title}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/300x400/e2e8f0/64748b?text=No+Image'
+                        }}
+                      />
+                    </Link>
+                  </div>
 
-          {/* Wishlist Content */}
-          {wishlistItems.length === 0 ? (
-            <div className="wishlist-empty">
-              <div className="empty-state">
-                <Heart className="empty-state__icon" size={64} />
-                <h2 className="empty-state__title">Your wishlist is empty</h2>
-                <p className="empty-state__description">
-                  Save books you're interested in to your wishlist and come back to them later.
-                </p>
-                <Link to="/books" className="btn btn--primary btn--lg">
-                  <Package size={20} />
-                  Browse Books
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="wishlist-grid">
-              {wishlistItems.map((item) => (
-                <div key={item.id} className="wishlist-item">
-                  <div className="wishlist-item__content">
-                    {/* Image */}
-                    <div className="wishlist-item__image">
-                      <Link to={`/books/${item.id}`}>
-                        <img
-                          src={item.image || '/placeholder-book.jpg'}
-                          alt={item.title}
-                          loading="lazy"
-                        />
+                  {/* Details */}
+                  <div className="wishlist-item__details">
+                    <div className="wishlist-item__header">
+                      <Link
+                        to={`/books/${item.id}`}
+                        className="wishlist-item__title"
+                      >
+                        {item.title}
                       </Link>
+                      <p className="wishlist-item__author">by {item.author}</p>
+                      <div className="wishlist-item__meta">
+                        <span className="wishlist-item__category">{item.category}</span>
+                      </div>
                     </div>
 
-                    {/* Details */}
-                    <div className="wishlist-item__details">
-                      <div className="wishlist-item__header">
-                        <Link
-                          to={`/books/${item.id}`}
-                          className="wishlist-item__title"
-                        >
-                          {item.title}
-                        </Link>
-                        <p className="wishlist-item__author">by {item.author}</p>
-                        <div className="wishlist-item__meta">
-                          <span className="wishlist-item__category">{item.category}</span>
-                          {/* Removed the addedAt date since it's not available in the context */}
-                        </div>
-                      </div>
+                    <div className="wishlist-item__price">
+                      <span className="price">{formatPrice(item.price)}</span>
+                    </div>
 
-                      <div className="wishlist-item__price">
-                        <span className="price">{formatPrice(item.price)}</span>
-                      </div>
+                    <div className="wishlist-item__actions">
+                      <button
+                        onClick={() => handleAddToCart(item)}
+                        disabled={addingToCart.has(item.id)}
+                        className="btn btn--primary btn--sm"
+                      >
+                        <ShoppingCart size={16} />
+                        {addingToCart.has(item.id) ? 'Adding...' : 'Add to Cart'}
+                      </button>
 
-                      <div className="wishlist-item__actions">
-                        <button
-                          onClick={() => handleAddToCart(item)}
-                          disabled={addingToCart.has(item.id)}
-                          className="btn btn--primary btn--sm"
-                        >
-                          <ShoppingCart size={16} />
-                          {addingToCart.has(item.id) ? 'Adding...' : 'Add to Cart'}
-                        </button>
+                      <Link
+                        to={`/books/${item.id}`}
+                        className="btn btn--secondary btn--sm"
+                      >
+                        <Eye size={16} />
+                        View
+                      </Link>
 
-                        <Link
-                          to={`/books/${item.id}`}
-                          className="btn btn--secondary btn--sm"
-                        >
-                          <Eye size={16} />
-                          View
-                        </Link>
-
-                        <button
-                          onClick={() => handleRemoveFromWishlist(item.id)}
-                          disabled={removingItems.has(item.id)}
-                          className="btn btn--danger btn--outline btn--sm"
-                          title="Remove from wishlist"
-                        >
-                          <Trash2 size={16} />
-                          {removingItems.has(item.id) ? 'Removing...' : 'Remove'}
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleRemoveFromWishlist(item.id)}
+                        disabled={removingItems.has(item.id)}
+                        className="btn btn--danger btn--outline btn--sm"
+                        title="Remove from wishlist"
+                      >
+                        <Trash2 size={16} />
+                        {removingItems.has(item.id) ? 'Removing...' : 'Remove'}
+                      </button>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <style>{`
-        :root {
-          --space-1: 0.25rem;
-          --space-2: 0.5rem;
-          --space-3: 0.75rem;
-          --space-4: 1rem;
-          --space-6: 1.5rem;
-          --space-8: 2rem;
-          --font-size-xs: 0.75rem;
-          --font-size-sm: 0.875rem;
-          --font-size-lg: 1.125rem;
-          --font-size-xl: 1.25rem;
-          --font-size-2xl: 1.5rem;
-          --font-size-3xl: 1.875rem;
-          --font-weight-medium: 500;
-          --font-weight-semibold: 600;
-          --font-weight-bold: 700;
-          --radius-sm: 0.25rem;
-          --radius-md: 0.375rem;
-          --radius-lg: 0.5rem;
-          --radius-xl: 0.75rem;
-          --radius-full: 9999px;
-          --bg-primary: #ffffff;
-          --bg-secondary: #f8fafc;
-          --text-primary: #1f2937;
-          --text-secondary: #6b7280;
-          --text-muted: #9ca3af;
-          --color-primary: #3b82f6;
-          --color-primary-light: #dbeafe;
-          --color-gray-200: #e5e7eb;
-          --color-gray-400: #9ca3af;
-        }
-
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 1rem;
-        }
-
-        .btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          padding: 0.75rem 1.5rem;
-          font-size: 1rem;
-          font-weight: 500;
-          border: 1px solid transparent;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          text-decoration: none;
-          background: none;
-        }
-
-        .btn--primary {
-          background-color: #3b82f6;
-          color: white;
-          border-color: #3b82f6;
-        }
-
-        .btn--primary:hover:not(:disabled) {
-          background-color: #2563eb;
-          border-color: #2563eb;
-        }
-
-        .btn--secondary {
-          background-color: #6b7280;
-          color: white;
-          border-color: #6b7280;
-        }
-
-        .btn--secondary:hover:not(:disabled) {
-          background-color: #4b5563;
-          border-color: #4b5563;
-        }
-
-        .btn--danger {
-          background-color: #ef4444;
-          color: white;
-          border-color: #ef4444;
-        }
-
-        .btn--danger:hover:not(:disabled) {
-          background-color: #dc2626;
-          border-color: #dc2626;
-        }
-
-        .btn--outline {
-          background-color: transparent;
-        }
-
-        .btn--outline.btn--danger {
-          color: #ef4444;
-          border-color: #ef4444;
-        }
-
-        .btn--lg {
-          padding: 1rem 2rem;
-          font-size: 1.125rem;
-        }
-
-        .wishlist-page {
-          min-height: calc(100vh - 200px);
-          padding: var(--space-6) 0;
-          background: var(--bg-secondary);
-        }
-
-        .wishlist-header {
-          margin-bottom: var(--space-8);
-          padding: var(--space-6);
-          background: var(--bg-primary);
-          border-radius: var(--radius-xl);
-          border: 1px solid var(--color-gray-200);
-        }
-
+        /* Header styling matching BookCatalog */
         .wishlist-header__content {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: var(--space-4);
+          gap: var(--space-4, 1.5rem);
+          flex-wrap: wrap;
         }
 
         .wishlist-header__info {
           display: flex;
           align-items: center;
-          gap: var(--space-4);
+          gap: var(--space-4, 1.5rem);
         }
 
         .wishlist-header__icon {
@@ -342,31 +230,107 @@ const Wishlist = () => {
           flex-shrink: 0;
         }
 
-        .wishlist-header__title {
-          font-size: var(--font-size-3xl);
-          font-weight: var(--font-weight-bold);
-          color: var(--text-primary);
-          margin: 0;
-          line-height: 1.2;
-        }
-
-        .wishlist-header__subtitle {
-          font-size: var(--font-size-lg);
-          color: var(--text-secondary);
-          margin: var(--space-1) 0 0;
-        }
-
         .wishlist-header__actions {
           display: flex;
-          gap: var(--space-3);
+          gap: var(--space-3, 1rem);
           align-items: center;
         }
 
+        /* Button styles */
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          border: 1px solid transparent;
+          border-radius: 0.75rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-decoration: none;
+          background: none;
+          white-space: nowrap;
+        }
+
+        .btn--primary {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+        }
+
+        .btn--primary:hover:not(:disabled) {
+          background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn--secondary {
+          background: var(--bg-secondary, #f8fafc);
+          color: var(--text-primary, #1f2937);
+          border: 1px solid var(--color-gray-200, #e5e7eb);
+        }
+
+        .btn--secondary:hover:not(:disabled) {
+          background: var(--bg-primary, #ffffff);
+          border-color: var(--color-primary, #3b82f6);
+          color: var(--color-primary, #3b82f6);
+        }
+
+        .btn--danger {
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          color: white;
+          border: none;
+        }
+
+        .btn--danger:hover:not(:disabled) {
+          background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+          transform: translateY(-2px);
+        }
+
+        .btn--outline {
+          background-color: transparent;
+        }
+
+        .btn--outline.btn--danger {
+          color: var(--color-danger, #ef4444);
+          border: 1px solid var(--color-danger, #ef4444);
+          background: transparent;
+        }
+
+        .btn--outline.btn--danger:hover:not(:disabled) {
+          background: var(--color-danger, #ef4444);
+          color: white;
+        }
+
+        .btn--lg {
+          padding: 1rem 2rem;
+          font-size: 1rem;
+        }
+
+        .btn--sm {
+          padding: 0.5rem 0.75rem;
+          font-size: 0.75rem;
+          height: auto;
+          min-height: 32px;
+        }
+
+        .btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          pointer-events: none;
+          transform: none;
+        }
+
+        /* Empty state */
         .wishlist-empty {
           display: flex;
           justify-content: center;
           align-items: center;
           min-height: 400px;
+          padding: var(--space-16, 4rem);
         }
 
         .empty-state {
@@ -375,57 +339,59 @@ const Wishlist = () => {
         }
 
         .empty-state__icon {
-          color: var(--color-gray-400);
-          margin-bottom: var(--space-4);
+          color: var(--color-gray-400, #9ca3af);
+          margin-bottom: var(--space-6, 1.5rem);
         }
 
         .empty-state__title {
-          font-size: var(--font-size-2xl);
-          font-weight: var(--font-weight-semibold);
-          color: var(--text-primary);
-          margin: 0 0 var(--space-2);
+          font-size: 1.875rem;
+          font-weight: 600;
+          color: var(--text-primary, #1f2937);
+          margin: 0 0 var(--space-4, 1rem);
         }
 
         .empty-state__description {
-          font-size: var(--font-size-lg);
-          color: var(--text-secondary);
-          margin: 0 0 var(--space-6);
+          font-size: 1.125rem;
+          color: var(--text-muted, #6b7280);
+          margin: 0 0 var(--space-8, 2rem);
           line-height: 1.6;
         }
 
+        /* Wishlist grid */
         .wishlist-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: var(--space-6);
+          grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+          gap: var(--space-6, 1.5rem);
         }
 
         .wishlist-item {
-          background: var(--bg-primary);
-          border-radius: var(--radius-lg);
+          background: var(--bg-primary, #ffffff);
+          border-radius: 16px;
           overflow: hidden;
-          border: 1px solid var(--color-gray-200);
+          border: 1px solid var(--color-gray-200, #e5e7eb);
           transition: all 0.3s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .wishlist-item:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-          border-color: var(--color-primary-light);
+          transform: translateY(-4px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          border-color: var(--color-primary, #3b82f6);
         }
 
         .wishlist-item__content {
           display: flex;
-          padding: var(--space-4);
-          gap: var(--space-4);
+          padding: var(--space-6, 1.5rem);
+          gap: var(--space-4, 1rem);
         }
 
         .wishlist-item__image {
           flex-shrink: 0;
-          width: 80px;
-          height: 120px;
-          border-radius: var(--radius-md);
+          width: 100px;
+          height: 140px;
+          border-radius: 8px;
           overflow: hidden;
-          background: var(--bg-secondary);
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         }
 
         .wishlist-item__image img {
@@ -447,88 +413,96 @@ const Wishlist = () => {
         }
 
         .wishlist-item__header {
-          margin-bottom: var(--space-3);
+          margin-bottom: var(--space-4, 1rem);
         }
 
         .wishlist-item__title {
           display: block;
-          font-size: var(--font-size-lg);
-          font-weight: var(--font-weight-semibold);
-          color: var(--text-primary);
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: var(--text-primary, #1f2937);
           text-decoration: none;
-          margin-bottom: var(--space-1);
+          margin-bottom: var(--space-2, 0.5rem);
           line-height: 1.4;
           transition: color 0.3s ease;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
 
         .wishlist-item__title:hover {
-          color: var(--color-primary);
+          color: var(--color-primary, #3b82f6);
         }
 
         .wishlist-item__author {
-          font-size: var(--font-size-sm);
-          color: var(--text-secondary);
-          margin: 0 0 var(--space-2);
-          font-style: italic;
+          font-size: 0.875rem;
+          color: var(--text-muted, #6b7280);
+          margin: 0 0 var(--space-3, 0.75rem);
+          font-weight: 500;
         }
 
         .wishlist-item__meta {
           display: flex;
           flex-wrap: wrap;
-          gap: var(--space-2);
+          gap: var(--space-2, 0.5rem);
           align-items: center;
         }
 
         .wishlist-item__category {
-          padding: var(--space-1) var(--space-2);
-          background: var(--color-primary-light);
-          color: var(--color-primary);
-          font-size: var(--font-size-xs);
-          border-radius: var(--radius-full);
-          font-weight: var(--font-weight-medium);
+          padding: 0.25rem 0.75rem;
+          background: var(--color-primary-light, rgba(59, 130, 246, 0.1));
+          color: var(--color-primary, #3b82f6);
+          font-size: 0.75rem;
+          border-radius: 50px;
+          font-weight: 500;
         }
 
         .wishlist-item__price {
-          margin: var(--space-2) 0;
+          margin: var(--space-3, 0.75rem) 0;
         }
 
         .price {
-          font-size: var(--font-size-xl);
-          font-weight: var(--font-weight-bold);
-          color: var(--color-primary);
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: var(--color-secondary, #059669);
         }
 
         .wishlist-item__actions {
           display: flex;
-          gap: var(--space-2);
+          gap: var(--space-2, 0.5rem);
           flex-wrap: wrap;
         }
 
-        .btn--sm {
-          padding: var(--space-2) var(--space-3);
-          font-size: var(--font-size-sm);
-          height: auto;
-          min-height: 32px;
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-1);
+        /* Dark mode overrides */
+        :global([data-theme="dark"]) .btn--secondary {
+          background: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.9);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        :global([data-theme="dark"]) .btn--secondary:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(102, 126, 234, 0.5);
+          color: white;
+        }
+
+        :global([data-theme="dark"]) .btn--outline.btn--danger {
+          color: #ef4444;
+          border-color: #ef4444;
+        }
+
+        :global([data-theme="dark"]) .wishlist-item__category {
+          background: rgba(102, 126, 234, 0.2);
+          color: rgba(102, 126, 234, 0.9);
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
-          .wishlist-page {
-            padding: var(--space-4) 0;
-          }
-
-          .wishlist-header {
-            padding: var(--space-4);
-            margin-bottom: var(--space-6);
-          }
-
           .wishlist-header__content {
             flex-direction: column;
             align-items: flex-start;
-            gap: var(--space-4);
+            gap: var(--space-4, 1rem);
           }
 
           .wishlist-header__actions {
@@ -542,7 +516,7 @@ const Wishlist = () => {
 
           .wishlist-grid {
             grid-template-columns: 1fr;
-            gap: var(--space-4);
+            gap: var(--space-4, 1rem);
           }
 
           .wishlist-item__content {
@@ -552,7 +526,7 @@ const Wishlist = () => {
 
           .wishlist-item__image {
             width: 120px;
-            height: 180px;
+            height: 160px;
             align-self: center;
           }
 
@@ -566,28 +540,21 @@ const Wishlist = () => {
           }
 
           .empty-state {
-            padding: 0 var(--space-4);
+            padding: 0 var(--space-4, 1rem);
           }
         }
 
-        .btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-          pointer-events: none;
-        }
+        @media (max-width: 480px) {
+          .wishlist-item__actions {
+            flex-direction: column;
+          }
 
-        .btn:focus-visible {
-          outline: 2px solid var(--color-primary);
-          outline-offset: 2px;
-        }
-
-        .wishlist-item__title:focus-visible {
-          outline: 2px solid var(--color-primary);
-          outline-offset: 2px;
-          border-radius: var(--radius-sm);
+          .wishlist-item__actions .btn {
+            width: 100%;
+          }
         }
       `}</style>
-    </>
+    </div>
   )
 }
 
