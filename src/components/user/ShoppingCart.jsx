@@ -10,11 +10,10 @@ import {
   Trash2,
   CreditCard,
   ArrowLeft,
-  CheckCircle,
-  Package,
   AlertTriangle,
   Eye,
-  Heart
+  Heart,
+  Package
 } from 'lucide-react'
 
 export default function ShoppingCart() {
@@ -23,16 +22,11 @@ export default function ShoppingCart() {
     updateCartItem,
     removeFromCart,
     clearCart,
-    createOrder,
     isLoading
   } = useCartContext()
 
   const { getBookById } = useBookContext()
   const navigate = useNavigate()
-
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
-  const [orderSuccess, setOrderSuccess] = useState(false)
-  const [orderId, setOrderId] = useState(null)
 
   // Fixed: Prevent crash when cart is empty or items is undefined
   const cartItemsWithBooks = useMemo(() => {
@@ -74,122 +68,19 @@ export default function ShoppingCart() {
     }
   }
 
-  const handleCheckout = async () => {
-    setIsCheckingOut(true)
-
-    try {
-      const orderData = {
-        items: cartItemsWithBooks.map(item => ({
-          bookId: item.bookId,
-          quantity: item.quantity,
-          price: item.book.price
-        })),
-        totalAmount: finalTotal,
-        shippingAddress: null,
-        paymentMethod: 'card'
+  // Updated checkout function to navigate to payment gateway
+  const handleCheckout = () => {
+    navigate('/payment', {
+      state: {
+        amount: finalTotal,
+        items: cartItemsWithBooks.length,
+        orderId: 'ORD' + Date.now(),
+        cartItems: cartItemsWithBooks,
+        subtotal: cartTotal,
+        tax: tax,
+        shippingAddress: null
       }
-
-      const result = await createOrder(orderData)
-
-      if (result.success) {
-        setOrderId(result.orderId)
-        setOrderSuccess(true)
-      }
-    } catch (error) {
-      console.error('Checkout error:', error)
-    } finally {
-      setIsCheckingOut(false)
-    }
-  }
-
-  // Success page component
-  if (orderSuccess) {
-    return (
-      <div className="page">
-        <div className="container">
-          <div className="success-page">
-            <div className="success-animation">
-              <div className="success-checkmark">
-                <CheckCircle size={80} />
-              </div>
-            </div>
-            <h1 className="success-title">🎉 Order Placed Successfully!</h1>
-            <div className="order-summary-card">
-              <h3>Order #{orderId}</h3>
-              <p>Total Amount: ₹{finalTotal.toLocaleString()}</p>
-              <p>Payment Method: Credit Card</p>
-              <p className="success-message">
-                Thank you for your purchase! Your order has been placed and will be processed shortly.
-                You'll receive an email confirmation soon.
-              </p>
-            </div>
-
-            <div className="success-actions">
-              <Link to="/orders" className="btn btn--primary btn--lg">
-                <Package size={20} />
-                Track Order
-              </Link>
-              <Link to="/books" className="btn btn--outline btn--lg">
-                <ArrowLeft size={20} />
-                Continue Shopping
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <style jsx>{`
-          .success-page {
-            text-align: center;
-            padding: var(--space-16);
-            max-width: 600px;
-            margin: 0 auto;
-          }
-
-          .success-animation {
-            margin-bottom: var(--space-8);
-            animation: bounceIn 0.8s ease-out;
-          }
-
-          .success-checkmark {
-            color: var(--color-success);
-            display: inline-block;
-            background: rgba(16, 185, 129, 0.1);
-            border-radius: 50%;
-            padding: var(--space-6);
-          }
-
-          .success-title {
-            font-size: var(--font-size-3xl);
-            font-weight: var(--font-weight-bold);
-            margin-bottom: var(--space-6);
-            color: var(--text-primary);
-          }
-
-          .order-summary-card {
-            background: var(--bg-primary);
-            border: 2px solid var(--color-success);
-            border-radius: var(--radius-xl);
-            padding: var(--space-6);
-            margin-bottom: var(--space-8);
-            box-shadow: var(--shadow-lg);
-          }
-
-          .success-actions {
-            display: flex;
-            gap: var(--space-4);
-            justify-content: center;
-            flex-wrap: wrap;
-          }
-
-          @keyframes bounceIn {
-            0% { opacity: 0; transform: scale(0.3); }
-            50% { opacity: 1; transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
-          }
-        `}</style>
-      </div>
-    )
+    })
   }
 
   // Enhanced Empty cart component
@@ -703,20 +594,11 @@ export default function ShoppingCart() {
 
               <button
                 onClick={handleCheckout}
-                disabled={isCheckingOut || cartItemsWithBooks.length === 0}
+                disabled={cartItemsWithBooks.length === 0}
                 className="btn btn--primary checkout-btn"
               >
-                {isCheckingOut ? (
-                  <>
-                    <div className="spinner spinner--sm"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard size={18} />
-                    Secure Checkout
-                  </>
-                )}
+                <CreditCard size={18} />
+                Proceed to Payment
               </button>
 
               <div className="checkout-features">
@@ -1187,26 +1069,6 @@ export default function ShoppingCart() {
           gap: var(--space-3, 0.75rem);
           font-size: 0.875rem;
           color: var(--text-secondary, #6b7280);
-        }
-
-        /* Spinner */
-        .spinner {
-          width: 16px;
-          height: 16px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-top: 2px solid white;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        .spinner--sm {
-          width: 14px;
-          height: 14px;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
         }
 
         /* Dark mode styles for cart content */

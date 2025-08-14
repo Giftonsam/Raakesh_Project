@@ -36,6 +36,13 @@ import Categories from './components/user/Categories'
 import Feedback from './components/user/Feedback'
 import OrderHistory from './components/user/OrderHistory'
 
+// Payment Components
+import PaymentGateway from './components/user/PaymentGateway'
+import UpiPayment from './components/user/UpiPayment'
+import CardPayment from './components/user/CardPayment'
+import QrPayment from './components/user/QrPayment'
+import PaymentSuccess from './components/user/PaymentSuccess'
+
 // Styles
 import './styles/globals.css'
 import './styles/components.css'
@@ -183,6 +190,33 @@ function AppContent() {
             <Route path="/orders" element={
               <ProtectedRoute requiredUserType={2}>
                 <OrderHistory />
+              </ProtectedRoute>
+            } />
+
+            {/* Payment Routes */}
+            <Route path="/payment" element={
+              <ProtectedRoute requiredUserType={2}>
+                <PaymentGateway />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment/upi" element={
+              <ProtectedRoute requiredUserType={2}>
+                <UpiPayment />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment/card" element={
+              <ProtectedRoute requiredUserType={2}>
+                <CardPayment />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment/qr" element={
+              <ProtectedRoute requiredUserType={2}>
+                <QrPayment />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment/success" element={
+              <ProtectedRoute requiredUserType={2}>
+                <PaymentSuccess />
               </ProtectedRoute>
             } />
 
