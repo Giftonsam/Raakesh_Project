@@ -65,24 +65,24 @@ const PaymentGateway = () => {
       offers: 'EMI Available',
       processingTime: '2-3 mins'
     },
-    {
-      id: 'netbanking',
-      name: 'Net Banking',
-      icon: <Building2 size={20} />,
-      description: 'All Indian banks',
-      recommended: false,
-      offers: null,
-      processingTime: '3-5 mins'
-    },
-    {
-      id: 'wallet',
-      name: 'Digital Wallet',
-      icon: <Wallet size={20} />,
-      description: 'Paytm, Amazon Pay, etc.',
-      recommended: false,
-      offers: '₹50 Cashback',
-      processingTime: 'Instant'
-    },
+    // {
+    //   id: 'netbanking',
+    //   name: 'Net Banking',
+    //   icon: <Building2 size={20} />,
+    //   description: 'All Indian banks',
+    //   recommended: false,
+    //   offers: null,
+    //   processingTime: '3-5 mins'
+    // },
+    // {
+    //   id: 'wallet',
+    //   name: 'Digital Wallet',
+    //   icon: <Wallet size={20} />,
+    //   description: 'Paytm, Amazon Pay, etc.',
+    //   recommended: false,
+    //   offers: '₹50 Cashback',
+    //   processingTime: 'Instant'
+    // },
     {
       id: 'qr',
       name: 'QR Code',
@@ -114,11 +114,11 @@ const PaymentGateway = () => {
       case 'qr':
         navigate('/payment/qr', { state: orderDetails })
         break
-      case 'netbanking':
-      case 'wallet':
-        // You can create separate components for these
-        navigate('/payment/upi', { state: orderDetails })
-        break
+      // case 'netbanking':
+      // case 'wallet':
+      //   // You can create separate components for these
+      //   navigate('/payment/upi', { state: orderDetails })
+      //   break
       default:
         break
     }

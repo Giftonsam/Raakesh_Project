@@ -48,7 +48,7 @@ import './styles/globals.css'
 import './styles/components.css'
 
 // Page Loading Wrapper Component
-function PageLoadingWrapper({ children, minLoadingTime = 600 }) {
+function PageLoadingWrapper({ children, minLoadingTime = 100 /*This will slow the loodind spinner*/}) {
   const [isPageLoading, setIsPageLoading] = useState(true)
   const location = useLocation()
 
@@ -81,6 +81,7 @@ function AppContent() {
   const { user, isLoading } = useAuth()
 
   // Memoize the redirect path to prevent unnecessary re-calculations
+  console.log("User")
   const redirectPath = useMemo(() => {
     if (!user) return "/auth/login"
     return user.usertype === 1 ? "/admin" : "/books"
